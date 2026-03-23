@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How the X Algorithm Actually Works</title>
+<style>
+  :root {
+    --bg: #0a0a12;
+    --surface: #12121e;
+    --surface2: #1a1a2e;
+    --accent: #1d9bf0;
+    --accent2: #7856ff;
+    --green: #00c853;
+    --red: #ff3d71;
+    --orange: #ff9500;
+    --yellow: #ffd60a;
+    --text: #e7e9ea;
+    --text2: #8b98a5;
+    --border: #2f3336;
+    --card-radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(29,155,240,.15) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: .6; }
+    50% { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    color: var(--text2);
+    font-size: 1.15rem;
+    max-width: 540px;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .badge {
+    margin-top: 1.5rem;
+    display: inline-block;
+    padding: .4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: .85rem;
+    color: var(--text2);
+    position: relative;
+    z-index: 1;
+  }
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    animation: bob 2s ease-in-out infinite;
+    color: var(--text2);
+    font-size: 1.5rem;
+    z-index: 1;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,18,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: .8rem 2rem;
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a {
+    color: var(--text2);
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: .9rem;
+    font-weight: 600;
+    padding: .4rem .8rem;
+    border-radius: 999px;
+    transition: all .2s;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: var(--surface2); }
+
+  /* ── Sections ── */
+  section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 5rem 1.5rem;
+  }
+  .section-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+  section h2 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -.5px;
+  }
+  section p, section li {
+    color: var(--text2);
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+  }
+  section strong { color: var(--text); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .card h3 {
+    font-size: 1.1rem;
+    margin-bottom: .6rem;
+  }
+
+  /* ── Funnel Illustration ── */
+  .funnel-wrap {
+    position: relative;
+    margin: 2.5rem 0;
+    padding: 1rem;
+  }
+  .funnel-stage {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: .6rem;
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: all .5s ease;
+  }
+  .funnel-stage.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .funnel-bar {
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-weight: 700;
+    font-size: .85rem;
+    color: #fff;
+    white-space: nowrap;
+    transition: width 1s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .funnel-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 100% { left: 200%; } }
+  .funnel-label {
+    font-size: .82rem;
+    color: var(--text2);
+    min-width: 120px;
+    text-align: right;
+  }
+  .funnel-count {
+    font-size: .82rem;
+    color: var(--text2);
+    min-width: 50px;
+  }
+
+  /* ── Narrowing arrow ── */
+  .narrowing {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+  }
+  .narrowing svg { filter: drop-shadow(0 0 8px rgba(29,155,240,.3)); }
+  .narrowing .label {
+    font-size: .85rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: .5rem;
+  }
+
+  /* ── Scorecard ── */
+  .scorecard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-icon { font-size: 1.2rem; width: 28px; text-align: center; }
+  .score-name { flex: 1; font-size: .9rem; color: var(--text); }
+  .score-bar-wrap {
+    width: 120px;
+    height: 8px;
+    background: rgba(255,255,255,.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-bar {
+    height: 100%;
+    border-radius: 4px;
+    width: 0;
+    transition: width 1.2s ease;
+  }
+  .score-bar.positive { background: linear-gradient(90deg, var(--green), var(--accent)); }
+  .score-bar.negative { background: linear-gradient(90deg, var(--orange), var(--red)); }
+  .score-weight {
+    font-size: .78rem;
+    color: var(--text2);
+    width: 60px;
+    text-align: right;
+    font-family: monospace;
+  }
+
+  /* ── Multiplier chain ── */
+  .multiplier-chain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    margin: 2rem 0;
+    align-items: center;
+  }
+  .mult-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .7rem 1rem;
+    text-align: center;
+    opacity: 0;
+    transform: scale(.8);
+    transition: all .4s ease;
+    min-width: 100px;
+  }
+  .mult-box.visible { opacity: 1; transform: scale(1); }
+  .mult-box .value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    display: block;
+  }
+  .mult-box .desc {
+    font-size: .72rem;
+    color: var(--text2);
+    display: block;
+    margin-top: 2px;
+  }
+  .mult-box.penalty .value { color: var(--red); }
+  .mult-box.boost .value { color: var(--green); }
+  .mult-box.neutral .value { color: var(--yellow); }
+  .mult-arrow {
+    font-size: 1.3rem;
+    color: var(--text2);
+    opacity: 0;
+    transition: opacity .4s;
+  }
+  .mult-arrow.visible { opacity: 1; }
+
+  /* ── Ripple / distribution ── */
+  .ripple-container {
+    position: relative;
+    width: 100%;
+    height: 420px;
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ripple-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(.5);
+    transition: all .8s ease;
+  }
+  .ripple-ring.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .ripple-ring.tier1 {
+    width: 100px; height: 100px;
+    border-color: var(--accent);
+    background: rgba(29,155,240,.12);
+    z-index: 4;
+  }
+  .ripple-ring.tier2 {
+    width: 200px; height: 200px;
+    border-color: var(--accent2);
+    background: rgba(120,86,255,.06);
+    z-index: 3;
+    animation: ripple-pulse 3s ease-in-out infinite;
+  }
+  .ripple-ring.tier3 {
+    width: 310px; height: 310px;
+    border-color: var(--green);
+    background: rgba(0,200,83,.04);
+    z-index: 2;
+    animation: ripple-pulse 3s ease-in-out 0.8s infinite;
+  }
+  .ripple-ring.tier4 {
+    width: 400px; height: 400px;
+    border-color: var(--orange);
+    background: rgba(255,149,0,.03);
+    z-index: 1;
+    animation: ripple-pulse 3s ease-in-out 1.6s infinite;
+  }
+  @keyframes ripple-pulse {
+    0%, 100% { box-shadow: 0 0 0 0px rgba(255,255,255,.05); }
+    50% { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+  }
+  .ripple-label {
+    position: absolute;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .25rem .6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .ripple-center-icon {
+    font-size: 1.8rem;
+    z-index: 5;
+    position: relative;
+  }
+
+  /* ── Cheat sheet cards ── */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .cheat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 1.3rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all .5s ease;
+  }
+  .cheat-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .cheat-card.do { border-top: 3px solid var(--green); }
+  .cheat-card.dont { border-top: 3px solid var(--red); }
+  .cheat-card .badge-small {
+    display: inline-block;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+  .cheat-card.do .badge-small { background: rgba(0,200,83,.15); color: var(--green); }
+  .cheat-card.dont .badge-small { background: rgba(255,61,113,.15); color: var(--red); }
+  .cheat-card h4 { font-size: 1rem; margin-bottom: .4rem; }
+  .cheat-card p { font-size: .88rem; color: var(--text2); margin-bottom: 0; }
+
+  /* ── Decay bar visual ── */
+  .decay-visual {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin: 1.5rem 0;
+    height: 100px;
+  }
+  .decay-bar {
+    flex: 1;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    position: relative;
+    transition: height 1s ease;
+    min-width: 40px;
+  }
+  .decay-bar .bar-label {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: .7rem;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .decay-bar .bar-value {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* ── Comparison visual ── */
+  .compare-row {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+  }
+  .compare-item {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .compare-item .big-number {
+    font-size: 2rem;
+    font-weight: 800;
+    display: block;
+    margin: .5rem 0;
+  }
+  .compare-item .label { font-size: .85rem; color: var(--text2); }
+  .compare-item.winner { border-color: var(--green); }
+  .compare-item.loser { border-color: var(--red); }
+  .compare-item.winner .big-number { color: var(--green); }
+  .compare-item.loser .big-number { color: var(--red); }
+
+  /* ── Source tag ── */
+  .source {
+    display: inline-block;
+    font-size: .7rem;
+    color: var(--accent);
+    background: rgba(29,155,240,.1);
+    padding: .15rem .5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    margin-left: .3rem;
+    vertical-align: middle;
+  }
+
+  /* ── Formula block ── */
+  .formula-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    font-family: monospace;
+    font-size: .92rem;
+    color: var(--accent);
+    overflow-x: auto;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text2);
+    font-size: .85rem;
+    border-top: 1px solid var(--border);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    section { padding: 3rem 1rem; }
+    .ripple-container { height: 320px; }
+    .ripple-ring.tier1 { width: 70px; height: 70px; }
+    .ripple-ring.tier2 { width: 150px; height: 150px; }
+    .ripple-ring.tier3 { width: 230px; height: 230px; }
+    .ripple-ring.tier4 { width: 300px; height: 300px; }
+    .funnel-label { min-width: 80px; font-size: .72rem; }
+    .score-bar-wrap { width: 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <h1>How the <span>X Algorithm</span><br>Actually Works</h1>
+  <p>A plain-English guide based entirely on X's open-sourced code. No guessing, no hype &mdash; just what the code says.</p>
+  <span class="badge">Based on twitter/the-algorithm repo</span>
+  <div class="scroll-hint">&#8595;</div>
+</div>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav id="nav">
+  <a href="#section1">1 &middot; What You See</a>
+  <a href="#section2">2 &middot; How It Ranks</a>
+  <a href="#section3">3 &middot; Distribution</a>
+  <a href="#section4">4 &middot; Creator Playbook</a>
+</nav>
+
+<!-- ═══════════════════ SECTION 1 ═══════════════════ -->
+<section id="section1">
+  <div class="section-label">Part 1 &mdash; The Consumer's View</div>
+  <h2>How does X decide what to show&nbsp;you?</h2>
+
+  <p>Think of your For You feed like a restaurant kitchen. Before a dish (tweet) reaches your plate, it goes through multiple stages: <strong>sourcing ingredients</strong>, <strong>checking quality</strong>, <strong>cooking &amp; plating</strong>, and <strong>final taste-testing</strong>.</p>
+
+  <div class="card">
+    <h3>Step 1: Gather Candidates</h3>
+    <p>The algorithm collects around <strong>1,500+ candidate tweets</strong> from 8 different sources, all at once. About <strong>half come from people you follow</strong> (in-network), and the other half from people you don't follow (out-of-network). <span class="source">README.md</span></p>
+  </div>
+
+  <div class="funnel-wrap" id="funnel">
+    <div class="funnel-stage" style="transition-delay:.0s">
+      <span class="funnel-label">Your follows</span>
+      <div class="funnel-bar" style="width:0; max-width:100%; background: linear-gradient(90deg, #1d9bf0, #1a8cd8);" data-width="100%">In-Network</div>
+      <span class="funnel-count">600</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.1s">
+      <span class="funnel-label">Tweet Mixer</span>
+      <div class="funnel-bar" style="width:0; max-width:67%; background: linear-gradient(90deg, #7856ff, #6644dd);" data-width="67%">Recommendations</div>
+      <span class="funnel-count">400</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.2s">
+      <span class="funnel-label">Social Proof</span>
+      <div class="funnel-bar" style="width:0; max-width:50%; background: linear-gradient(90deg, #00c853, #00a844);" data-width="50%">UTEG</div>
+      <span class="funnel-count">300</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.2s">
+      <span class="funnel-label">Backfill</span>
+      <div class="funnel-bar" style="width:0; max-width:33%; background: linear-gradient(90deg, #ff9500, #dd8000);" data-width="33%">Older posts</div>
+      <span class="funnel-count">200</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.3s">
+      <span class="funnel-label">Who to Follow</span>
+      <div class="funnel-bar" style="width:0; max-width:17%; background: linear-gradient(90deg, #ff3d71, #dd2255);" data-width="17%">FRS</div>
+      <span class="funnel-count">100</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.35s">
+      <span class="funnel-label">Communities</span>
+      <div class="funnel-bar" style="width:0; max-width:17%; background: linear-gradient(90deg, #ffd60a, #ddbb00);" data-width="17%">Groups</div>
+      <span class="funnel-count">100</span>
+    </div>
+    <div class="funnel-stage" style="transition-delay:.4s">
+      <span class="funnel-label">Lists</span>
+      <div class="funnel-bar" style="width:0; max-width:17%; background: linear-gradient(90deg, #8899aa, #667788);" data-width="17%">Lists</div>
+      <span class="funnel-count">100</span>
+    </div>
+  </div>
+  <p style="text-align:center; font-size:.8rem; color:var(--text2);">Default fetch limits from <span class="source">ScoredTweetsParam.scala &rarr; FetchParams</span></p>
+
+  <div class="narrowing">
+    <svg width="120" height="80" viewBox="0 0 120 80">
+      <polygon points="10,0 110,0 80,80 40,80" fill="none" stroke="var(--accent)" stroke-width="2" opacity=".5"/>
+      <polygon points="10,0 110,0 80,80 40,80" fill="url(#funnelGrad)" opacity=".15"/>
+      <defs><linearGradient id="funnelGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)"/><stop offset="100%" stop-color="transparent"/></linearGradient></defs>
+    </svg>
+    <div class="label">~1,500+ candidates &#10132; scored &amp; filtered &#10132; ~50 tweets in your feed</div>
+  </div>
+
+  <div class="card">
+    <h3>Step 2: Score Every Tweet</h3>
+    <p>A <strong>neural network</strong> (called the "Heavy Ranker", served via Navi in Rust) looks at each tweet and predicts how likely <em>you specifically</em> are to interact with it &mdash; like it, reply, share, watch a video, etc. It checks <strong>17 different engagement types</strong>. <span class="source">NaviModelScorer.scala</span></p>
+  </div>
+
+  <div class="card">
+    <h3>Step 3: Filter &amp; Mix</h3>
+    <p>After scoring, <strong>25+ filters</strong> remove tweets that are spam, from blocked accounts, that you've already seen, or that violate safety rules. Then the top ~50 surviving tweets are mixed with ads and suggestions to form your feed. <span class="source">visibilitylib/ &amp; home-mixer/filter/</span></p>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 2 ═══════════════════ -->
+<section id="section2">
+  <div class="section-label">Part 2 &mdash; The Ranking Engine</div>
+  <h2>What does the algorithm prioritise?</h2>
+
+  <p>Every tweet gets a <strong>single score</strong>. That score is a mix of 17 predictions about your behaviour, each weighted differently. Think of it like a judge scoring a gymnastics routine across multiple categories.</p>
+
+  <h3 style="margin: 2rem 0 1rem;">The 17 Engagement Predictions</h3>
+  <p>For every tweet, the algorithm predicts: <em>"How likely is this specific user to&hellip;"</em></p>
+
+  <div class="scorecard" id="scorecard">
+    <div class="score-row"><span class="score-icon">&#10084;&#65039;</span><span class="score-name">Like it</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="90%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128257;</span><span class="score-name">Retweet it</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="80%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128172;</span><span class="score-name">Reply to it</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="70%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128140;</span><span class="score-name">Reply &amp; author replies back</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="65%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128278;</span><span class="score-name">Click &amp; then engage</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="75%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128100;</span><span class="score-name">Visit author's profile &amp; engage</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="60%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#127909;</span><span class="score-name">Watch 50%+ of video</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="72%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#9200;</span><span class="score-name">Dwell on tweet 15+ sec</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="55%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128064;</span><span class="score-name">Dwell on profile 20+ sec</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="50%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128278;</span><span class="score-name">Bookmark it</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="68%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128228;</span><span class="score-name">Share it</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="65%"></div></div><span class="score-weight">high +</span></div>
+    <div class="score-row"><span class="score-icon">&#128196;</span><span class="score-name">Open share menu</span><div class="score-bar-wrap"><div class="score-bar positive" data-width="40%"></div></div><span class="score-weight">med +</span></div>
+    <div style="padding:.8rem 0; font-size:.85rem; color:var(--red); font-weight:700; border-top: 1px solid var(--border);">&#9888; Negative signals (penalise the score):</div>
+    <div class="score-row"><span class="score-icon">&#128078;</span><span class="score-name">"Not Interested" tap</span><div class="score-bar-wrap"><div class="score-bar negative" data-width="70%"></div></div><span class="score-weight">high &minus;</span></div>
+    <div class="score-row"><span class="score-icon">&#128680;</span><span class="score-name">Report the tweet</span><div class="score-bar-wrap"><div class="score-bar negative" data-width="100%"></div></div><span class="score-weight">max &minus;</span></div>
+    <div class="score-row"><span class="score-icon">&#128544;</span><span class="score-name">Strong dislike</span><div class="score-bar-wrap"><div class="score-bar negative" data-width="60%"></div></div><span class="score-weight">high &minus;</span></div>
+    <div class="score-row"><span class="score-icon">&#128528;</span><span class="score-name">Mild dislike</span><div class="score-bar-wrap"><div class="score-bar negative" data-width="35%"></div></div><span class="score-weight">med &minus;</span></div>
+  </div>
+  <p style="text-align:center; font-size:.8rem; color:var(--text2);"><span class="source">PredictedScoreFeature.scala</span> &mdash; all 17 engagement types are defined here</p>
+
+  <div class="card">
+    <h3>The Scoring Formula</h3>
+    <p>In plain English: for each engagement type, multiply <em>how likely you are to do it</em> by <em>how much X values it</em>, then add them all up.</p>
+    <div class="formula-block">
+      Score = (P(like) &times; w<sub>like</sub>) + (P(retweet) &times; w<sub>retweet</sub>) + (P(reply) &times; w<sub>reply</sub>) + &hellip; &minus; (P(report) &times; w<sub>report</sub>)
+    </div>
+    <p style="font-size:.85rem;">The report weight can go as low as <strong>&minus;20,000</strong> &mdash; far heavier than any other negative signal (others cap at &minus;1,000). A tweet people might report gets brutally punished. <span class="source">HomeGlobalParams.scala &rarr; ModelWeights.ReportParam</span></p>
+  </div>
+
+  <h3 style="margin: 2.5rem 0 1rem;">After the AI scores it, heuristic adjustments kick in</h3>
+  <p>After the neural network gives each tweet a score, the algorithm applies a chain of <strong>multipliers</strong> that can boost or shrink that score. These are applied one after another (they compound):</p>
+
+  <div class="multiplier-chain" id="multipliers">
+    <div class="mult-box penalty"><span class="value">&times;0.75</span><span class="desc">Not from someone<br>you follow</span></div>
+    <span class="mult-arrow">&rarr;</span>
+    <div class="mult-box penalty"><span class="value">&times;0.75</span><span class="desc">It's a reply,<br>not an original post</span></div>
+    <span class="mult-arrow">&rarr;</span>
+    <div class="mult-box neutral"><span class="value">MTL Norm</span><span class="desc">Prevents big accounts<br>from dominating</span></div>
+    <span class="mult-arrow">&rarr;</span>
+    <div class="mult-box penalty"><span class="value">&times;0.5&hellip;0.25</span><span class="desc">Same author<br>showing up again</span></div>
+    <span class="mult-arrow">&rarr;</span>
+    <div class="mult-box boost"><span class="value">&times;20</span><span class="desc">"Show More<br>Like This"</span></div>
+    <span class="mult-arrow">&rarr;</span>
+    <div class="mult-box penalty"><span class="value">&times;0.05</span><span class="desc">"Show Less<br>Like This"</span></div>
+  </div>
+  <p style="font-size:.82rem; color:var(--text2); text-align:center;">
+    <span class="source">HeuristicScorer.scala</span> &middot; <span class="source">ScoredTweetsParam.scala</span>
+  </p>
+
+  <div class="card">
+    <h3>What This Means For You</h3>
+    <p>The algorithm strongly favours tweets from <strong>people you follow</strong> (out-of-network gets a 25% penalty), favours <strong>original posts over replies</strong> (replies get a 25% penalty), and <strong>diversifies your feed</strong> so one person doesn't flood it. If you tap "Show More Like This", similar content gets a massive <strong>20&times; boost</strong>. Tap "Show Less", and it gets <strong>crushed to 5%</strong> of its score.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 3 ═══════════════════ -->
+<section id="section3">
+  <div class="section-label">Part 3 &mdash; The Creator's View</div>
+  <h2>How does the algorithm distribute your content?</h2>
+
+  <p>When you post a tweet, it doesn't just go to your followers. It can spread outward in <strong>expanding rings</strong> &mdash; but only if it earns its way there through genuine engagement.</p>
+
+  <div class="ripple-container" id="ripples">
+    <div class="ripple-ring tier4">
+      <span class="ripple-label" style="top:-12px; left:50%; transform:translateX(-50%); color:var(--orange); background:rgba(255,149,0,.12);">&#128276; Push Notifications (strictest quality bar)</span>
+    </div>
+    <div class="ripple-ring tier3">
+      <span class="ripple-label" style="top:-12px; left:50%; transform:translateX(-50%); color:var(--green); background:rgba(0,200,83,.12);">&#129504; Interest Matching &mdash; SimClusters (needs 9+ likes)</span>
+    </div>
+    <div class="ripple-ring tier2">
+      <span class="ripple-label" style="top:-12px; left:50%; transform:translateX(-50%); color:var(--accent2); background:rgba(120,86,255,.12);">&#128101; Friends-of-Followers &mdash; UTEG Social Proof</span>
+    </div>
+    <div class="ripple-ring tier1">
+      <span class="ripple-label" style="top:-12px; left:50%; transform:translateX(-50%); color:var(--accent); background:rgba(29,155,240,.12);">&#128101; Followers</span>
+    </div>
+    <span class="ripple-center-icon">&#128172;</span>
+  </div>
+
+  <div class="card">
+    <h3>Ring 1: Your Followers (Automatic)</h3>
+    <p>Your tweet immediately enters the candidate pool for <strong>every person who follows you</strong>. But "entering the pool" doesn't mean they'll see it &mdash; it competes with up to 600 other tweets in their feed. A light ranking model in the search index (Earlybird) gives it an initial relevance score. <span class="source">ScoredTweetsParam.scala &rarr; InNetworkMaxTweetsToFetchParam = 600</span></p>
+  </div>
+
+  <div class="card">
+    <h3>Ring 2: Friends of Followers (Earned via Likes)</h3>
+    <p>When your followers <strong>like or retweet</strong> your tweet, something powerful happens: the UTEG (User-Tweet-Entity-Graph) makes your tweet visible to <em>their</em> followers &mdash; people who don't follow you at all. This is the "𝕏 liked" distribution you see in your feed. The more of your followers who engage, the wider this ring expands. <span class="source">cr-mixer/ &rarr; UtegTweetCandidateGenerator</span></p>
+  </div>
+
+  <div class="card">
+    <h3>Ring 3: Interest-Matched Strangers (Earned via Topic Relevance)</h3>
+    <p>Once your tweet gets <strong>9 or more likes</strong>, it gets processed by SimClusters &mdash; a system that maps every tweet and every user into 145,000 interest clusters. If your tweet matches someone's interest profile, it can appear in their feed even with <strong>zero social connection</strong> to you. <span class="source">simclusters-ann/ &amp; SimClustersInterestedInCandidateGeneration</span></p>
+  </div>
+
+  <div class="card">
+    <h3>Ring 4: Push Notifications (Hardest to Reach)</h3>
+    <p>The notification pipeline (<code>pushservice</code>) has its own, <strong>much stricter</strong> quality bar. It runs separate ML models to predict both whether someone will open the notification AND engage with your content. It applies extra health and quality filters that the regular timeline doesn't. Only the highest-quality out-of-network content makes it here. <span class="source">pushservice/ &rarr; PushMLModelScorer</span></p>
+  </div>
+
+  <div class="card">
+    <h3>How Long Does Distribution Last?</h3>
+    <p>Your tweet's distribution window is shaped by several time-based mechanisms:</p>
+    <ul style="list-style:none; padding: 0;">
+      <li style="padding: .4rem 0;">&#9200; <strong>Cache TTL</strong>: Scored tweets are cached for just <strong>3 minutes</strong> before re-evaluation <span class="source">CachedScoredTweets.TTLParam = 3.minutes</span></li>
+      <li style="padding: .4rem 0;">&#128065; <strong>Impression filter</strong>: Once someone sees your tweet, it's recorded and excluded from their future feeds</li>
+      <li style="padding: .4rem 0;">&#128336; <strong>Age filter</strong>: Tweets beyond a configurable age threshold are removed from candidacy</li>
+      <li style="padding: .4rem 0;">&#127793; <strong>Evergreen rescue</strong>: A dedicated pipeline can resurface high-quality older content that remains relevant <span class="source">EvergreenDeepRetrievalListwiseRescoringProvider</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 4 ═══════════════════ -->
+<section id="section4">
+  <div class="section-label">Part 4 &mdash; The Creator's Playbook</div>
+  <h2>What kind of content should you&nbsp;create?</h2>
+
+  <p>Here's what the algorithm's code actually reveals about what performs well. Every tip below is backed by a specific parameter, feature, or pipeline in the codebase.</p>
+
+  <h3 style="margin-top: 2rem;">Original Posts Beat Replies</h3>
+  <div class="compare-row">
+    <div class="compare-item winner">
+      <span class="label">Original tweet</span>
+      <span class="big-number">1.0&times;</span>
+      <span class="label">Full score</span>
+    </div>
+    <div class="compare-item loser">
+      <span class="label">Reply</span>
+      <span class="big-number">0.75&times;</span>
+      <span class="label">25% penalty</span>
+    </div>
+  </div>
+  <p style="font-size:.85rem; color:var(--text2);">Replies get a built-in 25% score reduction. Share your key ideas as standalone posts, not replies. <span class="source">ReplyScaleFactorParam = 0.75</span></p>
+
+  <h3 style="margin-top: 2.5rem;">Fewer, Better Posts &gt; Flooding the Timeline</h3>
+  <p>Every additional tweet the algorithm shows from you to the same person scores <strong>progressively lower</strong>:</p>
+
+  <div class="decay-visual" id="decay-bars">
+    <div class="decay-bar" data-height="100%" style="height:0;">
+      <span class="bar-value">1.00&times;</span>
+      <span class="bar-label">1st post</span>
+    </div>
+    <div class="decay-bar" data-height="62%" style="height:0;">
+      <span class="bar-value">0.63&times;</span>
+      <span class="bar-label">2nd post</span>
+    </div>
+    <div class="decay-bar" data-height="44%" style="height:0;">
+      <span class="bar-value">0.44&times;</span>
+      <span class="bar-label">3rd post</span>
+    </div>
+    <div class="decay-bar" data-height="34%" style="height:0;">
+      <span class="bar-value">0.34&times;</span>
+      <span class="bar-label">4th post</span>
+    </div>
+    <div class="decay-bar" data-height="25%" style="height:0;">
+      <span class="bar-value">0.25&times;</span>
+      <span class="bar-label">5th+</span>
+    </div>
+  </div>
+  <p style="font-size:.82rem; color:var(--text2); margin-top: 2rem;">Author diversity decay: factor = 0.5, floor = 0.25. Your 5th tweet barely reaches 25% of its original score. <span class="source">AuthorDiversityDecayFactor = 0.5, AuthorDiversityFloor = 0.25</span></p>
+
+  <h3 style="margin-top: 2.5rem;">The Do's and Don'ts Cheat Sheet</h3>
+
+  <div class="cheat-grid" id="cheat-grid">
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Earn Likes From Your Followers First</h4>
+      <p>Likes from followers trigger UTEG distribution to their network. SimClusters requires <strong>9+ likes</strong> to even activate interest-matching. Your followers are the launchpad. <span class="source">MinFavToHydrate</span></p>
+    </div>
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Reply to Your Own Replies</h4>
+      <p>The algorithm has a dedicated prediction for "will the author reply back?" (<code>PredictedReplyEngagedByAuthorScore</code>). Being a conversational creator is an explicit positive signal.</p>
+    </div>
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Make Videos People Finish</h4>
+      <p>The algorithm tracks <strong>50%+ video completion</strong> as a distinct positive signal. Front-load the hook. Shorter, compelling videos that people actually watch beat long ones they skip. <span class="source">PredictedVideoPlayback50ScoreFeature</span></p>
+    </div>
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Write Content People Dwell On</h4>
+      <p>15+ seconds spent reading your tweet detail, or 20+ seconds on your profile, are both explicit positive signals with their own prediction models. Make it worth stopping for. <span class="source">PredictedTweetDetailDwellScore (15s) &middot; PredictedProfileDwelledScore (20s)</span></p>
+    </div>
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Stay On-Topic (Clearly)</h4>
+      <p>SimClusters maps tweets into 145K interest clusters. Clear, specific topics get stronger cluster matches, meaning better interest-based distribution. Vague, unfocused content is harder to recommend.</p>
+    </div>
+    <div class="cheat-card do">
+      <span class="badge-small">Do</span>
+      <h4>Create Content People Bookmark &amp; Share</h4>
+      <p>Both bookmarks and shares have dedicated prediction signals with full positive weight ranges. These are high-intent signals the algorithm values. <span class="source">PredictedBookmarkScoreFeature &middot; PredictedShareScoreFeature</span></p>
+    </div>
+    <div class="cheat-card dont">
+      <span class="badge-small">Don't</span>
+      <h4>Post Too Frequently</h4>
+      <p>Author diversity decay multiplies down at <strong>0.5&times; per extra tweet shown</strong>, flooring at 0.25&times;. Fewer high-quality posts outperform a flood of mediocre ones.</p>
+    </div>
+    <div class="cheat-card dont">
+      <span class="badge-small">Don't</span>
+      <h4>Post Repetitive Visual Content</h4>
+      <p>Media cluster decay and CLIP image cluster decay penalise visually similar content shown to the same user. Vary your visual style. <span class="source">ImpressedMediaClusterBasedListwiseRescoringProvider &middot; ImpressedImageClusterBasedListwiseRescoringProvider</span></p>
+    </div>
+    <div class="cheat-card dont">
+      <span class="badge-small">Don't</span>
+      <h4>Trigger Reports</h4>
+      <p>The report prediction weight can go to <strong>&minus;20,000</strong> &mdash; the heaviest negative signal in the entire system. Even strong negative feedback caps at &minus;1,000. Avoid controversial or low-quality content that people might report. <span class="source">ModelWeights.ReportParam: max = 0, min = -20,000</span></p>
+    </div>
+    <div class="cheat-card dont">
+      <span class="badge-small">Don't</span>
+      <h4>Use Clickbait Without Follow-Through</h4>
+      <p>The algorithm distinguishes "good clicks" (clicks followed by likes/replies) from empty clicks. <code>PredictedGoodClickScore</code> means <em>clicked AND then engaged</em>. A click with no follow-up doesn't help.</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-color: var(--accent); margin-top: 2rem;">
+    <h3>&#128161; The Biggest Lever: "Show More / Show Less"</h3>
+    <p>When any user taps <strong>"Show More Like This"</strong> on content similar to yours, similar content gets a <strong>20&times; score multiplier</strong>. When they tap <strong>"Show Less"</strong>, similar content drops to <strong>5% of its score</strong>. The similarity threshold is 0.67 (embedding cosine similarity). Creating content that people actively want more of is the single most powerful amplifier in the algorithm.</p>
+    <p style="font-size:.82rem; color:var(--text2);"><span class="source">ControlAiShowMoreScaleFactorParam = 20.0</span> &middot; <span class="source">ControlAiShowLessScaleFactorParam = 0.05</span> &middot; <span class="source">ControlAiEmbeddingSimilarityThresholdParam = 0.67</span></p>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <p>Every number and claim on this page is grounded in <a href="https://github.com/twitter/the-algorithm" target="_blank">twitter/the-algorithm</a>.<br>
+  The actual runtime weights are configured via feature switches and may differ from the code defaults shown here.<br><br>
+  Source files referenced: <code>PredictedScoreFeature.scala</code> &middot; <code>NaviModelScorer.scala</code> &middot; <code>HeuristicScorer.scala</code> &middot; <code>ScoredTweetsParam.scala</code> &middot; <code>HomeGlobalParams.scala</code> &middot; <code>README.md</code> &middot; <code>visibilitylib/</code> &middot; <code>cr-mixer/</code> &middot; <code>pushservice/</code> &middot; <code>simclusters-ann/</code>
+  </p>
+</footer>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+(function() {
+  // ── Intersection Observer for scroll-triggered animations ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Funnel bars
+        if (entry.target.classList.contains('funnel-stage')) {
+          entry.target.classList.add('visible');
+          const bar = entry.target.querySelector('.funnel-bar');
+          if (bar) {
+            setTimeout(() => { bar.style.width = bar.dataset.width; }, 200);
+          }
+        }
+        // Score bars
+        if (entry.target.classList.contains('score-row')) {
+          const bar = entry.target.querySelector('.score-bar');
+          if (bar) {
+            setTimeout(() => { bar.style.width = bar.dataset.width; }, 100);
+          }
+        }
+        // Multiplier boxes
+        if (entry.target.classList.contains('mult-box') || entry.target.classList.contains('mult-arrow')) {
+          entry.target.classList.add('visible');
+        }
+        // Ripple rings
+        if (entry.target.classList.contains('ripple-ring')) {
+          entry.target.classList.add('visible');
+        }
+        // Cheat cards
+        if (entry.target.classList.contains('cheat-card')) {
+          entry.target.classList.add('visible');
+        }
+        // Decay bars
+        if (entry.target.classList.contains('decay-bar')) {
+          setTimeout(() => { entry.target.style.height = entry.target.dataset.height; }, 100);
+        }
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+  // Observe all animated elements
+  document.querySelectorAll('.funnel-stage, .score-row, .mult-box, .mult-arrow, .ripple-ring, .cheat-card, .decay-bar').forEach(el => {
+    observer.observe(el);
+  });
+
+  // ── Sticky nav active state ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const top = section.offsetTop - 100;
+      if (window.scrollY >= top) {
+        current = section.getAttribute('id');
+      }
+    });
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) {
+        link.classList.add('active');
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

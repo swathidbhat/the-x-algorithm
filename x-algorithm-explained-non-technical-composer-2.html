@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How this open-source X recommendation code fits together (plain language)</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e7e9ea;
+      --muted: #8b98a5;
+      --accent: #1d9bf0;
+      --warn: #f7931a;
+      --ok: #00ba7c;
+      --border: #38444d;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 1.05rem;
+    }
+    .wrap { max-width: 42rem; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    h1 { font-size: 1.65rem; font-weight: 700; line-height: 1.25; margin: 0 0 0.75rem; }
+    h2 { font-size: 1.2rem; margin: 2.25rem 0 0.75rem; color: var(--text); font-weight: 650; }
+    h3 { font-size: 1.05rem; margin: 1.5rem 0 0.5rem; color: var(--muted); font-weight: 600; }
+    p, li { color: #d3dae0; }
+    .banner {
+      background: linear-gradient(135deg, #1d2a3a 0%, #1a2332 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.75rem;
+      font-size: 0.95rem;
+    }
+    .banner strong { color: var(--warn); }
+    code, .src {
+      font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+      font-size: 0.82em;
+      background: #273340;
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+      color: #c4cfda;
+    }
+    .src { display: inline-block; margin-top: 0.35rem; font-size: 0.78rem; word-break: break-all; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    .figure {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1rem 1.25rem;
+      margin: 1rem 0 1.25rem;
+    }
+    .figure p.caption {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0.75rem 0 0;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.75rem 0; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { filter: brightness(1.08); }
+    button.secondary { background: #38444d; color: var(--text); }
+    label { font-size: 0.9rem; color: var(--muted); }
+    input[type="range"] { width: 100%; max-width: 280px; }
+    svg { display: block; width: 100%; height: auto; }
+    .node { fill: #3d5366; stroke: #8899a6; stroke-width: 2; }
+    .node.hl { fill: #1d4f7c; stroke: var(--accent); }
+    .edge { stroke: #657786; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    .pulse {
+      fill: var(--accent);
+      opacity: 0.85;
+    }
+    table.simple {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 0.5rem 0;
+    }
+    table.simple th, table.simple td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.55rem;
+      text-align: left;
+    }
+    table.simple th { background: #22303f; color: var(--muted); font-weight: 600; }
+    .steps {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .step {
+      background: #22303f;
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .step:hover { border-color: var(--border); }
+    .step.open { border-color: var(--accent); }
+    .step h4 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+    .step .detail {
+      display: none;
+      margin-top: 0.5rem;
+      font-size: 0.92rem;
+      color: #c0cad3;
+    }
+    .step.open .detail { display: block; }
+    .ref { font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>How the open-source “X recommendation” code describes feeds and reputation</h1>
+
+    <div class="banner">
+      <strong>Important:</strong> This page only restates what this <em>Git repository</em> says in its README files and source code.
+      It does not claim to describe the full live X product, and parts of the real system are documented elsewhere or not shipped here
+      (for example, the root <code>README.md</code> links the home heavy-ranker write-up to another repository).
+    </div>
+
+    <h2>1. What you see in “For You” (according to <code>home-mixer/README.md</code>)</h2>
+    <p>
+      The docs in this repo say that <strong>Home Mixer</strong> builds the home timelines, and that
+      <strong>For You</strong> is described as the “best” posts from people you follow <em>plus</em> recommended
+      <strong>out-of-network</strong> content.
+    </p>
+    <p>
+      For the For You flow, the same README lists stages in order: gather <strong>candidate</strong> posts from several sources,
+      load about <strong>6000</strong> features for ranking, run a <strong>machine learning</strong> model to score and rank,
+      then apply <strong>filters and rules</strong> (author diversity, in-network vs out-of-network balance, feedback fatigue,
+      deduplication, visibility rules), then <strong>mix in</strong> non-post items such as ads and suggestions.
+    </p>
+    <p class="ref">Source: <code>home-mixer/README.md</code> (Overview and For You pipeline list).</p>
+
+    <div class="figure" id="feed-steps">
+      <p style="margin:0 0 0.5rem; font-weight:600;">Tap a step to expand (wording tracks the README)</p>
+      <div class="steps" id="stepList"></div>
+      <p class="caption">This is a navigation aid, not a live system diagram.</p>
+    </div>
+
+    <p>
+      The root <code>README.md</code> adds one quantitative note about candidate sourcing: it states that roughly
+      <strong>~50%</strong> of For You post candidates come from the <strong>search index</strong> candidate source
+      (“in-network” retrieval). The rest come from other named sources in that table.
+    </p>
+    <p class="ref">Source: <code>README.md</code> (For You Timeline table).</p>
+
+    <h2>2. What “Tweepcred” / author reputation is in <em>this</em> codebase</h2>
+    <p>
+      The root <code>README.md</code> describes <strong>tweepcred</strong> as a <strong>PageRank</strong>-style computation
+      for user reputation. The Scala batch jobs under
+      <code>src/scala/com/twitter/graph/batch/job/tweepcred/</code> implement that story in three plain ideas:
+    </p>
+    <ol>
+      <li>Build a <strong>graph</strong> of users (follow edges from Flock; optional weighted edges from “Real Graph” when configured).</li>
+      <li>Run <strong>PageRank</strong>-style iterations with a <strong>random jump</strong> term; the default jump probability in code is <strong>0.1</strong> (10%).</li>
+      <li>Convert the resulting score into a small integer (roughly <strong>0–100</strong>) for storage and later use.</li>
+    </ol>
+    <p class="ref">Sources: <code>PreparePageRankData.scala</code>, <code>WeightedPageRank.scala</code>, <code>Reputation.scala</code>, <code>ExtractTweepcred.scala</code>.</p>
+
+    <h3>Illustration: follows as arrows (conceptual)</h3>
+    <p>
+      The batch job reads <strong>positive follow edges</strong> from Flock for graph building. The picture below is only a
+      <strong>toy</strong> animation to show “who points to whom”; it does not display real users or real data.
+    </p>
+    <div class="figure">
+      <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" aria-label="Three users with follow arrows">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#657786" />
+          </marker>
+        </defs>
+        <text x="10" y="22" fill="#8b98a5" font-size="13">Example only — not real data</text>
+        <circle class="node" id="nA" cx="80" cy="110" r="28" />
+        <text x="80" y="115" text-anchor="middle" fill="#e7e9ea" font-size="14" font-weight="600">A</text>
+        <circle class="node" id="nB" cx="210" cy="60" r="28" />
+        <text x="210" y="65" text-anchor="middle" fill="#e7e9ea" font-size="14" font-weight="600">B</text>
+        <circle class="node" id="nC" cx="340" cy="110" r="28" />
+        <text x="340" y="115" text-anchor="middle" fill="#e7e9ea" font-size="14" font-weight="600">C</text>
+        <path class="edge" d="M 108 100 Q 150 40 182 58" />
+        <path class="edge" d="M 238 72 Q 290 40 312 95" />
+        <circle class="pulse" id="dot" r="6" cx="80" cy="110" />
+      </svg>
+      <div class="controls">
+        <button type="button" id="btnPulse">Play / restart dot along follows</button>
+        <button type="button" class="secondary" id="btnHl">Highlight middle node</button>
+      </div>
+      <p class="caption">
+        Code comment in <code>WeightedPageRank.scala</code> describes spreading mass along outgoing edges and mixing in a random jump.
+        Flock snapshot age is configured as “no older than 7 days” in <code>PreparePageRankData.scala</code> for the read shown in this repo.
+      </p>
+    </div>
+
+    <h3>“User mass” before PageRank (from <code>UserMass.scala</code>)</h3>
+    <p>
+      Each user gets a starting weight used in the random-jump part of PageRank. The file encodes explicit branches, including:
+    </p>
+    <table class="simple">
+      <thead><tr><th>Condition in code</th><th>Effect on mass in that branch</th></tr></thead>
+      <tbody>
+        <tr><td>Account <strong>suspended</strong></td><td>mass = <strong>0</strong></td></tr>
+        <tr><td>Account <strong>verified</strong> (safety flag in this struct)</td><td>mass = <strong>100</strong></td></tr>
+        <tr><td>Otherwise</td><td>A formula using account age and device flags, then scaled to 0–100 range in that branch; <strong>restricted</strong> accounts get an extra multiplicative factor of <strong>0.1</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      If someone follows <strong>more than 500</strong> accounts <em>and</em> the ratio
+      <code>(1 + followings) / (1 + followers)</code> is <strong>above 0.6</strong>, the code <strong>divides</strong> mass by an exponential penalty.
+      Exact constants: <code>threshAbsNumFriendsUMass = 500</code>,
+      <code>threshFriendsToFollowersRatioUMass = 0.6</code>,
+      <code>constantDivisionFactorGt_threshFriendsToFollowersRatioUMass = 5.0</code>.
+    </p>
+    <p class="ref">Source: <code>UserMass.scala</code>.</p>
+
+    <h3>After PageRank: map to 0–100 and optional “follow-churn” adjustment</h3>
+    <p>
+      <code>Reputation.scaledReputation</code> maps the raw PageRank value with a <strong>natural logarithm</strong> and a linear formula,
+      and clamps to a byte. The comments in that file say the fit maps roughly <strong>min PageRank → 15</strong> and
+      <strong>max PageRank → 95</strong> on that scale (those two numbers appear in comments, not as runtime asserts).
+    </p>
+    <p>
+      <code>ExtractTweepcred</code> can apply <code>adjustReputationsPostCalculation</code>, which only does extra division when
+      <code>numFollowings &gt; 2500</code>, using another exponential based on followings-to-followers ratio (threshold
+      <code>threshFriendsToFollowersRatioUMass = 0.6</code> again in that function). Then it normalizes masses before writing output.
+    </p>
+    <p class="ref">Sources: <code>Reputation.scala</code>, <code>ExtractTweepcred.scala</code>.</p>
+
+    <h3>PageRank iteration defaults (from <code>WeightedPageRank.scala</code>)</h3>
+    <table class="simple">
+      <tbody>
+        <tr><th>Setting</th><td>Default in code</td></tr>
+        <tr><td><code>jumpprob</code> (α)</td><td><strong>0.1</strong></td></tr>
+        <tr><td><code>maxiterations</code></td><td><strong>20</strong></td></tr>
+        <tr><td><code>threshold</code> (stop when total mass change small enough)</td><td><strong>0.001</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. How reputation shows up when posts are indexed (Earlybird ingester)</h2>
+    <p>
+      <code>UserPropertiesManager.java</code> loads a column called <code>TWEEPCRED</code> from metastore and, when valid, sets
+      <code>userReputation</code> on the message. If there is no usable value, it leaves the
+      <strong>sentinel</strong> <code>UNSET_REPUTATION_SENTINEL</code>, which is <code>Byte.MIN_VALUE</code> (−128).
+      <code>RelevanceSignalConstants.java</code> documents a <strong>goodwill</strong> replacement value of <strong>17</strong> for some scoring paths when reputation is unset
+      (see comments in that file and usage in scoring code).
+    </p>
+    <p class="ref">Sources: <code>UserPropertiesManager.java</code>, <code>RelevanceSignalConstants.java</code>,
+      <code>FeatureBasedScoringFunction.java</code> (comments about skipping low reputation vs. unset).</p>
+
+    <h3>Interactive: compare “unset” vs a numeric value (documented constants only)</h3>
+    <p>
+      Drag the slider. The labels use only constants from <code>RelevanceSignalConstants.java</code>.
+    </p>
+    <div class="figure">
+      <label for="repSlider">Simulated stored reputation byte (for display only): <strong id="repOut">unset (−128)</strong></label>
+      <input type="range" id="repSlider" min="-1" max="100" value="-1" aria-valuemin="-1" aria-valuemax="100" />
+      <p id="repExplain" style="margin:0.75rem 0 0; font-size:0.92rem; color:#c0cad3;"></p>
+      <p class="caption">This does not run Twitter’s scoring; it only echoes rules stated in the Java constants and comments.</p>
+    </div>
+
+    <h2>4. What this page does <em>not</em> claim</h2>
+    <ul>
+      <li>It does not say how much reputation changes your impressions in the live app—only where this repo wires numbers and rules.</li>
+      <li>It does not describe the heavy ranker’s internals (linked out of this repo in <code>README.md</code>).</li>
+      <li>Animations are labeled when they are <strong>pedagogical toys</strong>, not production traces.</li>
+    </ul>
+
+    <h2>5. File index (grounding)</h2>
+    <ul style="font-size:0.9rem;">
+      <li><code>home-mixer/README.md</code> — For You stages</li>
+      <li><code>README.md</code> — ~50% search-index candidates; component list</li>
+      <li><code>src/scala/com/twitter/graph/batch/job/tweepcred/*.scala</code> — PageRank pipeline</li>
+      <li><code>src/java/com/twitter/search/ingester/pipeline/util/UserPropertiesManager.java</code> — tweepcred → message</li>
+      <li><code>src/java/com/twitter/search/common/relevance/features/RelevanceSignalConstants.java</code> — sentinel &amp; goodwill</li>
+    </ul>
+  </div>
+
+  <script>
+    (function () {
+      var steps = [
+        { title: 'Candidate generation', text: 'Fetch candidate posts from several sources (README names Earlybird Search Index, User Tweet Entity Graph, Cr Mixer, Follow Recommendations Service).' },
+        { title: 'Feature hydration', text: 'Load about 6000 features for ranking (exact number stated in home-mixer/README.md).' },
+        { title: 'Scoring and ranking', text: 'Score with a machine learning model (home-mixer/README.md wording).' },
+        { title: 'Filters and heuristics', text: 'Examples listed in the README: author diversity; in-network vs out-of-network balance; feedback fatigue; deduplication; visibility filtering for blocks/mutes/NSFW settings.' },
+        { title: 'Mixing', text: 'Integrate posts with ads, Who-to-follow modules, prompts (same README).' }
+      ];
+      var list = document.getElementById('stepList');
+      steps.forEach(function (s, i) {
+        var div = document.createElement('div');
+        div.className = 'step';
+        div.innerHTML = '<h4>' + (i + 1) + '. ' + s.title + '</h4><div class="detail">' + s.text + '</div>';
+        div.addEventListener('click', function () {
+          div.classList.toggle('open');
+        });
+        list.appendChild(div);
+      });
+
+      // Animated dot along quadratic paths (toy)
+      var dot = document.getElementById('dot');
+      var pathAB = document.querySelector('path.edge');
+      var paths = document.querySelectorAll('path.edge');
+      var len0 = paths[0].getTotalLength();
+      var len1 = paths[1].getTotalLength();
+      var t0 = 0;
+      var anim = null;
+      function placeOnPath(path, len, t) {
+        var p = path.getPointAtLength(t * len);
+        dot.setAttribute('cx', p.x);
+        dot.setAttribute('cy', p.y);
+      }
+      function loop(ts) {
+        if (!t0) t0 = ts;
+        var u = ((ts - t0) / 5000) % 1;
+        if (u < 0.5) placeOnPath(paths[0], len0, u * 2);
+        else placeOnPath(paths[1], len1, (u - 0.5) * 2);
+        anim = requestAnimationFrame(loop);
+      }
+      document.getElementById('btnPulse').addEventListener('click', function () {
+        cancelAnimationFrame(anim);
+        t0 = 0;
+        placeOnPath(paths[0], len0, 0);
+        anim = requestAnimationFrame(loop);
+      });
+      document.getElementById('btnHl').addEventListener('click', function () {
+        document.getElementById('nB').classList.toggle('hl');
+      });
+
+      var slider = document.getElementById('repSlider');
+      var out = document.getElementById('repOut');
+      var expl = document.getElementById('repExplain');
+      var GOODWILL = 17;
+      var SENTINEL = -128;
+      function explain() {
+        var v = parseInt(slider.value, 10);
+        if (v === -1) {
+          out.textContent = 'unset (−128 sentinel)';
+          expl.innerHTML = 'RelevanceSignalConstants: UNSET_REPUTATION_SENTINEL = Byte.MIN_VALUE (−128). FeatureBasedScoringFunction comments say unset can be given a goodwill value (17) in some scoring paths.';
+          return;
+        }
+        out.textContent = String(v);
+        if (v === GOODWILL) {
+          expl.textContent = 'This equals GOODWILL_REPUTATION (17) in RelevanceSignalConstants.java.';
+        } else if (v === 100) {
+          expl.textContent = 'isValidUserReputation returns false for 100 because the check is userRep < MAX_REPUTATION (100).';
+        } else {
+          expl.textContent = 'isValidUserReputation in RelevanceSignalConstants requires value ≠ sentinel, ≥ MIN_REPUTATION (0), and < MAX_REPUTATION (100).';
+        }
+      }
+      slider.addEventListener('input', explain);
+      explain();
+    })();
+  </script>
+</body>
+</html>

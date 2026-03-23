@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>X Algo Decoded - Repo-Grounded Summary</title>
+    <style>
+      :root {
+        --bg: #f6f1e8;
+        --bg-soft: #fffaf0;
+        --paper: rgba(255, 250, 240, 0.88);
+        --ink: #1f2a2a;
+        --muted: #566060;
+        --line: rgba(31, 42, 42, 0.12);
+        --accent: #c4572a;
+        --accent-2: #1a7f77;
+        --accent-3: #c7a33f;
+        --shadow: 0 24px 60px rgba(31, 42, 42, 0.08);
+        --radius: 24px;
+        --radius-sm: 16px;
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(26, 127, 119, 0.12), transparent 28%),
+          radial-gradient(circle at top right, rgba(196, 87, 42, 0.12), transparent 28%),
+          linear-gradient(180deg, #f8f3eb 0%, #f2ebe0 100%);
+        font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(31, 42, 42, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(31, 42, 42, 0.04) 1px, transparent 1px);
+        background-size: 28px 28px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 85%);
+      }
+
+      a {
+        color: var(--accent-2);
+      }
+
+      .page {
+        width: min(var(--max), calc(100% - 32px));
+        margin: 0 auto;
+        position: relative;
+      }
+
+      .hero {
+        padding: 44px 0 22px;
+      }
+
+      .topline {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border: 1px solid rgba(26, 127, 119, 0.2);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(12px);
+        color: var(--accent-2);
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        margin: 0;
+      }
+
+      h1 {
+        margin-top: 18px;
+        font-size: clamp(2.9rem, 6vw, 5.4rem);
+        max-width: 11ch;
+      }
+
+      .lede {
+        max-width: 72ch;
+        margin-top: 18px;
+        font-size: 1.1rem;
+        color: var(--muted);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 24px;
+        align-items: start;
+        margin-top: 28px;
+      }
+
+      .glass,
+      .section,
+      .evidence-panel {
+        background: var(--paper);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: var(--shadow);
+        border-radius: var(--radius);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-card {
+        padding: 24px;
+      }
+
+      .hero-card h2 {
+        font-size: 1.6rem;
+        margin-bottom: 12px;
+      }
+
+      .hero-card p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .hero-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .hero-list div {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(31, 42, 42, 0.07);
+      }
+
+      .hero-list strong {
+        display: block;
+      }
+
+      .bubble {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(196, 87, 42, 0.15), rgba(26, 127, 119, 0.15));
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      nav {
+        position: sticky;
+        top: 14px;
+        z-index: 5;
+        margin: 8px 0 26px;
+      }
+
+      .nav-wrap {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 12px;
+        border-radius: 999px;
+        background: rgba(255, 250, 240, 0.82);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px rgba(31, 42, 42, 0.08);
+      }
+
+      .nav-wrap a {
+        text-decoration: none;
+        color: var(--ink);
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-size: 0.96rem;
+        transition: 150ms ease;
+      }
+
+      .nav-wrap a:hover,
+      .nav-wrap a:focus-visible {
+        background: rgba(26, 127, 119, 0.1);
+        outline: none;
+      }
+
+      main {
+        padding-bottom: 42px;
+      }
+
+      .section {
+        padding: 28px;
+        margin-bottom: 24px;
+      }
+
+      .section h2 {
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      .section-intro {
+        max-width: 72ch;
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
+      .callout {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(196, 87, 42, 0.18);
+        background: linear-gradient(135deg, rgba(196, 87, 42, 0.07), rgba(255, 255, 255, 0.55));
+      }
+
+      .callout strong {
+        color: var(--accent);
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 22px 0 18px;
+      }
+
+      .tab-btn,
+      .chip-btn {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.56);
+        border-radius: 999px;
+        padding: 12px 16px;
+        border: 1px solid rgba(31, 42, 42, 0.08);
+        transition: 160ms ease;
+      }
+
+      .tab-btn.active,
+      .chip-btn.active,
+      .tab-btn:hover,
+      .chip-btn:hover,
+      .tab-btn:focus-visible,
+      .chip-btn:focus-visible {
+        background: linear-gradient(135deg, rgba(26, 127, 119, 0.14), rgba(196, 87, 42, 0.14));
+        border-color: rgba(26, 127, 119, 0.3);
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .visual-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+        gap: 22px;
+        align-items: stretch;
+        min-height: 360px;
+      }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        align-items: center;
+      }
+
+      .stage {
+        position: relative;
+        min-height: 210px;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(31, 42, 42, 0.08);
+        background: rgba(255, 255, 255, 0.5);
+        overflow: hidden;
+        transition: 180ms ease;
+      }
+
+      .stage::after {
+        content: "";
+        position: absolute;
+        inset: auto 18px 12px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(31, 42, 42, 0.08);
+      }
+
+      .stage.active {
+        transform: translateY(-3px) scale(1.01);
+        border-color: rgba(26, 127, 119, 0.28);
+        box-shadow: 0 18px 34px rgba(26, 127, 119, 0.12);
+      }
+
+      .stage.active::after {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+
+      .stage small {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent-2);
+      }
+
+      .stage h3 {
+        margin-top: 8px;
+        font-size: 1.4rem;
+      }
+
+      .stage p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.96rem;
+      }
+
+      .connector {
+        position: absolute;
+        right: -11px;
+        top: 50%;
+        width: 22px;
+        height: 2px;
+        background: rgba(31, 42, 42, 0.12);
+        transform: translateY(-50%);
+      }
+
+      .stage:last-child .connector {
+        display: none;
+      }
+
+      .plain-box,
+      .note-box,
+      .data-box {
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      .plain-box h3,
+      .note-box h3,
+      .data-box h3 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+      }
+
+      .plain-box p,
+      .note-box p,
+      .data-box p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .mini-card {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.65);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      .mini-card h4 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+
+      .mini-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .source-grid,
+      .creator-grid,
+      .guardrail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 22px;
+      }
+
+      .info-card {
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+        min-height: 100%;
+      }
+
+      .info-card h3 {
+        font-size: 1.35rem;
+        margin-bottom: 8px;
+      }
+
+      .info-card p {
+        margin: 0 0 10px;
+        color: var(--muted);
+      }
+
+      .label {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(26, 127, 119, 0.1);
+        color: var(--accent-2);
+        font-size: 0.83rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .cluster-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 22px;
+        align-items: start;
+        margin-top: 22px;
+      }
+
+      .cluster-board {
+        padding: 22px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      .chip-wrap {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .cluster-bars {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .cluster-bar {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 14px;
+        background: rgba(31, 42, 42, 0.05);
+        font-size: 0.94rem;
+      }
+
+      .cluster-bar span:last-child {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .cluster-bar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(26, 127, 119, 0.28), rgba(196, 87, 42, 0.18));
+        z-index: 0;
+      }
+
+      .cluster-bar > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .diagram-card {
+        padding: 22px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .node {
+        fill: rgba(255, 255, 255, 0.85);
+        stroke: rgba(31, 42, 42, 0.18);
+        stroke-width: 2;
+        transition: 180ms ease;
+      }
+
+      .node-label {
+        fill: var(--ink);
+        font-size: 14px;
+        text-anchor: middle;
+        font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      }
+
+      .edge {
+        fill: none;
+        stroke: rgba(31, 42, 42, 0.12);
+        stroke-width: 3;
+        stroke-linecap: round;
+        transition: 180ms ease;
+      }
+
+      .edge.active {
+        stroke: var(--accent);
+        stroke-dasharray: 8 10;
+        animation: dash 1.2s linear infinite;
+      }
+
+      .node.active {
+        fill: rgba(26, 127, 119, 0.12);
+        stroke: rgba(26, 127, 119, 0.42);
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -18;
+        }
+      }
+
+      .timeline-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .timeline-box {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      .timeline-box strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .timeline-box p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      details {
+        margin-top: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px solid rgba(31, 42, 42, 0.07);
+        overflow: hidden;
+      }
+
+      summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 14px 16px;
+        font-weight: 600;
+      }
+
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details[open] summary {
+        border-bottom: 1px solid rgba(31, 42, 42, 0.07);
+      }
+
+      .evidence-body {
+        padding: 14px 16px 16px;
+        color: var(--muted);
+      }
+
+      .evidence-body ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .evidence-body li + li {
+        margin-top: 8px;
+      }
+
+      .footer {
+        padding: 16px 0 48px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .footer strong {
+        color: var(--ink);
+      }
+
+      .muted-note {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .fact-table-wrap {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(31, 42, 42, 0.08);
+        overflow: auto;
+      }
+
+      .fact-table-wrap h3 {
+        font-size: 1.45rem;
+        margin-bottom: 12px;
+      }
+
+      .fact-table-wrap p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .fact-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      .fact-table th,
+      .fact-table td {
+        vertical-align: top;
+        text-align: left;
+        padding: 12px 10px;
+        border-top: 1px solid rgba(31, 42, 42, 0.08);
+      }
+
+      .fact-table thead th {
+        border-top: 0;
+        color: var(--accent-2);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .visual-card,
+        .cluster-grid,
+        .source-grid,
+        .creator-grid,
+        .guardrail-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pipeline {
+          grid-template-columns: 1fr;
+        }
+
+        .connector {
+          top: auto;
+          bottom: -11px;
+          left: 50%;
+          right: auto;
+          width: 2px;
+          height: 22px;
+          transform: translateX(-50%);
+        }
+
+        .timeline-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(var(--max), calc(100% - 20px));
+        }
+
+        .hero {
+          padding-top: 24px;
+        }
+
+        .section,
+        .hero-card {
+          padding: 20px;
+        }
+
+        h1 {
+          max-width: none;
+        }
+
+        .mini-grid,
+        .timeline-grid,
+        .source-grid,
+        .creator-grid,
+        .guardrail-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-wrap {
+          border-radius: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <span class="topline">Built only from this repository</span>
+        <div class="hero-grid">
+          <div>
+            <h1>X Algo Decoded</h1>
+            <p class="lede">
+              This page summarizes current Home-timeline behavior using only code and docs in this
+              repository. It keeps the exact windows, caps, thresholds, and multipliers that appear
+              in code, then translates them into plain language. When the repo does not directly
+              state a creator rule, the page labels that as
+              <strong>inference from implementation</strong>.
+            </p>
+          </div>
+          <aside class="glass hero-card">
+            <h2>Summary</h2>
+            <p>
+              Current code organizes the feed in four broad steps: build a shortlist, score those
+              posts, filter and rescore them, then assemble the final timeline.
+            </p>
+            <div class="hero-list">
+              <div>
+                <span class="bubble">1</span>
+                <div>
+                  <strong>Shortlist</strong>
+                  The system pulls possible posts from people you follow, network-driven
+                  recommendations, interest systems, communities, categories, cache, and backfill.
+                </div>
+              </div>
+              <div>
+                <span class="bubble">2</span>
+                <div>
+                  <strong>Score</strong>
+                  Ranking predicts several possible outcomes for each post, not just likes.
+                </div>
+              </div>
+              <div>
+                <span class="bubble">3</span>
+                <div>
+                  <strong>Clean up</strong>
+                  Filters remove seen, repetitive, unsafe, low-quality, or disallowed items.
+                </div>
+              </div>
+              <div>
+                <span class="bubble">4</span>
+                <div>
+                  <strong>Assemble</strong>
+                  The final mixer arranges tweets and then inserts ads and other modules.
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      <nav>
+        <div class="nav-wrap">
+          <a href="#feed">How your feed is built</a>
+          <a href="#ranking">What it prioritizes</a>
+          <a href="#creator">How a post spreads</a>
+          <a href="#make">What creators should make</a>
+          <a href="#limits">What the repo does not promise</a>
+        </div>
+      </nav>
+
+      <main>
+        <section class="section" id="feed">
+          <h2>1. How the feed decides what to show you</h2>
+          <p class="section-intro">
+            The Home Mixer README describes the broad flow as candidate generation, feature
+            hydration, scoring and ranking, filters and heuristics, then mixing. On this page,
+            those are translated as shortlist building, adding context, scoring, filtering, and
+            final assembly. The current recommendation pipeline in code provides the more exact list
+            of active tweet sources.
+          </p>
+          <div class="callout">
+            <strong>Important accuracy note:</strong> the README's simplified For You diagram still
+            mentions an FRS tweet pipeline, but the current
+            <code>ScoredTweetsRecommendationPipelineConfig</code> candidate list does not include
+            it. On this page, the current code wins when prose and code differ.
+          </div>
+          <div class="callout">
+            <strong>Plain-language guide:</strong> on this page, a <code>candidate</code> means a
+            post that made it onto the system's shortlist; <code>in-network</code> means from
+            people you follow; <code>out-of-network</code> means from outside your follows;
+            <code>UTEG</code> is the repo's "liked by people near your graph" recommendation path;
+            and <code>Tweet Mixer</code> is another service that supplies many interest-based
+            recommendation pools.
+          </div>
+
+          <div class="tabs" aria-label="Feed pipeline steps">
+            <button class="tab-btn active" data-stage="gather">Build shortlist</button>
+            <button class="tab-btn" data-stage="score">Score them</button>
+            <button class="tab-btn" data-stage="filter">Filter and reshape</button>
+            <button class="tab-btn" data-stage="mix">Mix final feed</button>
+          </div>
+
+          <div class="visual-card">
+            <div class="pipeline" aria-hidden="true">
+              <div class="stage active" data-stage-card="gather">
+                <small>Stage 1</small>
+                <h3>Shortlist</h3>
+                <p>
+                  Pull possible posts from follows, network-driven recommendations, interest
+                  systems, communities, and support paths.
+                </p>
+                <span class="connector"></span>
+              </div>
+              <div class="stage" data-stage-card="score">
+                <small>Stage 2</small>
+                <h3>Score</h3>
+                <p>
+                  Add a large feature set and compute model predictions used for ranking.
+                </p>
+                <span class="connector"></span>
+              </div>
+              <div class="stage" data-stage-card="filter">
+                <small>Stage 3</small>
+                <h3>Filter</h3>
+                <p>
+                  Remove items that are too old, already seen, repetitive, invalid, or filtered for
+                  quality or safety reasons.
+                </p>
+                <span class="connector"></span>
+              </div>
+              <div class="stage" data-stage-card="mix">
+                <small>Stage 4</small>
+                <h3>Assemble</h3>
+                <p>
+                  Insert the remaining tweets into the timeline and then add non-tweet modules such
+                  as ads or who-to-follow.
+                </p>
+              </div>
+            </div>
+
+            <div class="plain-box" id="stage-copy">
+              <h3>First, the system builds a shortlist of possible posts.</h3>
+              <p>
+                Think of this as building a shortlist. The code does not start from every post on
+                the platform and rank all of them. It first narrows the universe down to a much
+                smaller set of candidates that look plausible for this viewer.
+              </p>
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <h4>What the code clearly says</h4>
+                  <p>
+                    The active scored-tweets pipeline currently draws from static support paths,
+                    cached posts, posts from people you follow, the direct UTEG path, Tweet Mixer,
+                    content exploration, lists, backfill, and communities.
+                  </p>
+                </div>
+                <div class="mini-card">
+                  <h4>Interpretation</h4>
+                  <p>
+                    The feed starts with several shortlists for this viewer, not one giant ranking
+                    pass over every post on the platform.
+                  </p>
+                </div>
+              </div>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>home-mixer/README.md</code>, lines 15-31: high-level flow is candidate
+                      generation, hydration, scoring, filters, mixing.
+                    </li>
+                    <li>
+                      <code>home-mixer/server/src/main/scala/com/twitter/home_mixer/product/scored_tweets/ScoredTweetsRecommendationPipelineConfig.scala</code>,
+                      lines 446-460: current candidate pipelines.
+                    </li>
+                    <li>
+                      <code>RETREIVAL_SIGNALS.md</code>, lines 5-6: candidate sourcing narrows
+                      roughly 1 billion items down to a few thousand.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="fact-table-wrap">
+            <h3>Explicit windows, caps, and limits in current code</h3>
+            <p>
+              These are hard-coded values or default params visible in the repo. The left column is
+              the plain-English reading; the middle column keeps the exact rule or number.
+            </p>
+            <table class="fact-table">
+              <thead>
+                <tr>
+                  <th>Path or factor</th>
+                  <th>What it means</th>
+                  <th>Extent in code</th>
+                  <th>Why stated in code or doc</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>In-network Earlybird</td>
+                  <td>Recent retrieval from accounts the viewer follows, with graph-based score weights attached to those followed accounts</td>
+                  <td>24h default, 48h for some viewer states; max 660 tweets; max 1500 followed users</td>
+                  <td>The code branches to 48h for some viewer states, but gives no further rationale</td>
+                </tr>
+                <tr>
+                  <td>Direct UTEG</td>
+                  <td>Out-of-network retrieval based on posts liked by accounts close to a viewer's follow graph</td>
+                  <td>24h tweet-age window; max 800 tweets; returned proof uses favorites only; max user-proof size 10; max tweet-proof size 10; minimum user-proof size 1</td>
+                  <td>The UTEG README explicitly says the core idea is collaborative filtering on a weighted follow graph</td>
+                </tr>
+                <tr>
+                  <td>Content exploration</td>
+                  <td>Recent "cold start" posts pulled from the viewer's category signals</td>
+                  <td>What is clearly enforced here: 100 results per scan, 500 after interweaving, and only the last 6 hours. The source defines <code>MaxUserCategory = 5</code>, but that constant is not used here; the current upstream category hydrator takes 3 user subcategories.</td>
+                  <td>No rationale is stated; code keeps this path focused on recent cold-start posts</td>
+                </tr>
+                <tr>
+                  <td>Communities</td>
+                  <td>Recent posts from communities the viewer belongs to</td>
+                  <td>48h window; default max 100 search results</td>
+                  <td>Rationale not stated</td>
+                </tr>
+                <tr>
+                  <td>Cache reuse</td>
+                  <td>Reuse recently scored posts for a short time</td>
+                  <td>TTL default 3 minutes; minimum 30 cached tweets before the cache-driven gate applies</td>
+                  <td>The RecentFeedbackCheckGate comment explicitly says the 3-minute check exists so "don't like" feedback is reflected faster</td>
+                </tr>
+                <tr>
+                  <td>Out-of-network preference gate</td>
+                  <td>A viewer setting that can turn off out-of-network recommendations</td>
+                  <td>Defaults to true if unset; when false, out-of-network candidate pipelines are disabled</td>
+                  <td>The gate comment explicitly states this behavior</td>
+                </tr>
+              </tbody>
+            </table>
+            <details>
+              <summary>Repo evidence for these values</summary>
+              <div class="evidence-body">
+                <ul>
+                  <li><code>.../EarlybirdInNetworkQueryTransformer.scala</code>, lines 20-23 and 83-88: 24h/48h windows, 660 tweet cap, 1500 followed-user cap.</li>
+                  <li><code>.../UtegQueryTransformer.scala</code>, lines 18-24 and 51-62: 24h window, 800 tweet cap, favorite-only social proof, max proof sizes, minimum proof size.</li>
+                  <li><code>src/scala/com/twitter/recos/user_tweet_entity_graph/README.md</code>, lines 7-13: collaborative-filtering description and 24-48h engagement memory.</li>
+                  <li><code>.../ContentExplorationCandidateSource.scala</code>, lines 23-25 and 43-52: constants, 100-per-scan limit, 500-result interweave cap, and 6h slice.</li>
+                  <li><code>.../UserEngagedGrokCategoriesFeatureHydrator.scala</code>, lines 28-34: current upstream category hydrator takes 3 user subcategories.</li>
+                  <li><code>.../ScoredTweetsParam.scala</code>, lines 257-272 and 842-848: cache TTL default 3 minutes, minimum cached tweets default 30, communities max-search default 100.</li>
+                  <li><code>.../AllowForYouRecommendationsGate.scala</code>, lines 9-22: out-of-network preference gate and default true when unset.</li>
+                  <li><code>.../RecentFeedbackCheckGate.scala</code>, lines 10-14: explicit reason for the recent-feedback cache check.</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="source-grid">
+            <article class="info-card">
+              <span class="label">Followers and in-network</span>
+              <h3>Posts from people you follow are a core input</h3>
+              <p>
+                This path pulls recent posts from accounts the viewer follows. The query also carries
+                graph-based score weights for those followed accounts, and reply or retweet inclusion
+                is controlled by parameters.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../EarlybirdInNetworkQueryTransformer.scala</code>, lines 20-23 and
+                      74-88: 24h default, 48h for some user states, followed user IDs and author
+                      scores.
+                    </li>
+                    <li>
+                      <code>.../ScoredTweetsEarlybirdInNetworkCandidatePipelineConfig.scala</code>,
+                      lines 72-88: in-network candidate path and reply-related filters.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Network-driven recommendations</span>
+              <h3>It can also show posts liked by people near you</h3>
+              <p>
+                The UTEG system is explicitly documented in this repo as powering the
+                "liked by people near your graph" style of out-of-network recommendation.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>src/scala/com/twitter/recos/user_tweet_entity_graph/README.md</code>,
+                      lines 7-10: UTEG generates "XXX Liked" out-of-network tweets using
+                      collaborative filtering on a weighted follow graph.
+                    </li>
+                    <li>
+                      <code>.../UtegQueryTransformer.scala</code>, lines 35-63: seeds are the
+                      viewer's weighted in-network graph and favorite-only social proof is used.
+                    </li>
+                    <li>
+                      <code>.../UtegMinFavCountFilter.scala</code>, lines 17-27: at least one
+                      non-author favorite is required in that path.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Interest match</span>
+              <h3>It can pull posts that match your interests, not just your follows</h3>
+              <p>
+                Tweet Mixer is another service that supplies many recommendation pools based on
+                viewer signals, embeddings, topics, geography, search history, and evergreen
+                retrieval systems.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../ScoredTweetsTweetMixerCandidatePipelineConfig.scala</code>, lines
+                      64-78: Home asks Tweet Mixer for the <code>HomeRecommendedTweets</code>
+                      product.
+                    </li>
+                    <li>
+                      <code>tweet-mixer/.../HomeRecommendedTweetsRecommendationPipelineConfig.scala</code>,
+                      lines 271-332: active retrieval pipelines include SimClusters, TwHIN, deep
+                      retrieval, evergreen, search history, geo/topic, user interest summary, and
+                      more.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Communities and categories</span>
+              <h3>It can also pull posts because you belong to a community or fit a category</h3>
+              <p>
+                One path looks at the viewer's community memberships. Another uses viewer categories
+                and recent "cold start" posts from those categories.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../CommunitiesEarlybirdQueryTransformer.scala</code>, lines 37-47:
+                      community IDs from membership are used to query posts.
+                    </li>
+                    <li>
+                      <code>.../ContentExplorationQueryTransformer.scala</code>, lines 18-24:
+                      viewer category signals are used.
+                    </li>
+                    <li>
+                      <code>.../ContentExplorationCandidateSource.scala</code>, lines 43-52:
+                      looks only at the last 6 hours of cold start posts.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="ranking">
+          <h2>2. What the feed prioritizes and how it reshapes rank</h2>
+          <p class="section-intro">
+            The code does not optimize for one action only. It predicts a set of outcome types,
+            combines them into a final score, and then applies additional multipliers, caps, and
+            selectors.
+          </p>
+
+          <div class="cluster-grid">
+            <div class="cluster-board">
+              <div class="chip-wrap">
+                <button class="chip-btn active" data-cluster="engage">Engagement</button>
+                <button class="chip-btn" data-cluster="click">Clicks and dwell</button>
+                <button class="chip-btn" data-cluster="video">Video</button>
+                <button class="chip-btn" data-cluster="negative">Negative feedback</button>
+              </div>
+              <div class="cluster-bars" id="cluster-bars"></div>
+              <p class="muted-note" style="margin-top: 14px;">
+                This visual lists prediction or filter types that explicitly exist in code. It does
+                not show final numeric model-head weights, because those are not hard-coded here as
+                a single stable set of constants.
+              </p>
+            </div>
+
+            <div class="data-box" id="cluster-copy">
+              <h3>The model predicts more than one kind of "good outcome."</h3>
+              <p>
+                The code estimates several outcome types at once. The same post can rank because it
+                is predicted to cause a reply, or because it is predicted to cause a bookmark or
+                longer dwell.
+              </p>
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <h4>What the code clearly says</h4>
+                  <p>
+                    Prediction heads include favorite, reply, retweet, bookmark, share, good click,
+                    profile click, dwell, multiple video quality heads, watch time, and negative
+                    feedback.
+                  </p>
+                </div>
+                <div class="mini-card">
+                  <h4>Interpretation</h4>
+                  <p>
+                    The feed is not optimizing for one reaction only. It is combining several
+                    predicted outcomes.
+                  </p>
+                </div>
+              </div>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../PredictedScoreFeature.scala</code>, lines 62-311: the explicit
+                      prediction heads.
+                    </li>
+                    <li>
+                      <code>.../WeighedModelRerankingScorer.scala</code>, lines 43-64: those heads
+                      are combined into a final weighted score.
+                    </li>
+                    <li>
+                      <code>.../RerankerUtil.scala</code>, lines 18-40 and 91-137: per-head scores
+                      plus weights are aggregated, with logic for negative heads.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="fact-table-wrap">
+            <h3>Explicit ranking multipliers, caps, and weight-like values</h3>
+            <p>
+              Where the repo gives a numeric extent, it is listed here. Each row keeps the raw
+              number and also says what that number means in plain language.
+            </p>
+            <table class="fact-table">
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>What it means</th>
+                  <th>Extent in code</th>
+                  <th>Why stated in code or doc</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Model heads</td>
+                  <td>The model predicts many possible good and bad outcomes, not just one</td>
+                  <td>The head list is fixed in code. Final per-head weights are loaded per request, so this repo does not expose one stable public weight table. <code>HomeGlobalParams</code> weight slots default to 0.0 before those runtime weights are loaded.</td>
+                  <td>No numeric rationale is stated</td>
+                </tr>
+                <tr>
+                  <td>Tweet Mixer weighted signal priority</td>
+                  <td>Inside one Tweet Mixer blending mode, likes are weighted slightly higher than bookmark, share, retweet, and reply</td>
+                  <td>Favorite = 0.2; bookmark/share/retweet/reply = 0.15; all other signals fall back to 0.2</td>
+                  <td>Rationale not stated beyond the weighting code</td>
+                </tr>
+                <tr>
+                  <td>Out-of-network scale factor</td>
+                  <td>A score cut applied to posts from outside the viewer's follow graph</td>
+                  <td>Default 0.75. In plain English: after this step, those posts keep about 75% of the score they had before this step.</td>
+                  <td>Rationale not stated</td>
+                </tr>
+                <tr>
+                  <td>Reply scale factor</td>
+                  <td>A score cut applied to reply posts</td>
+                  <td>Default 0.75. In plain English: after this step, replies keep about 75% of the score they had before this step.</td>
+                  <td>Rationale not stated</td>
+                </tr>
+                <tr>
+                  <td>Author diversity</td>
+                  <td>If several posts from one author compete in the same group, later ones are discounted</td>
+                  <td>Default decay factor 0.5 and floor 0.25. In plain English: within this step, the 1st same-author post gets factor 1.0, the 2nd gets 0.625, the 3rd 0.4375, and the 4th 0.34375.</td>
+                  <td>The code comment explicitly says this is an exponential decay discount by position</td>
+                </tr>
+                <tr>
+                  <td>Candidate-source diversity</td>
+                  <td>If several posts come from the same source-and-reason group, later ones can be slightly discounted</td>
+                  <td>Feature default is off. If enabled, default decay factor is 0.9 and floor is 0.8. In plain English: the 1st gets 1.0, the 2nd 0.98, and the 3rd 0.962.</td>
+                  <td>The code comment explicitly says this is an exponential decay discount by position</td>
+                </tr>
+                <tr>
+                  <td>Community cap</td>
+                  <td>Community posts cannot take over the page</td>
+                  <td>Maximum 1 tweet per community and 3 community tweets total</td>
+                  <td>Rationale not stated</td>
+                </tr>
+                <tr>
+                  <td>For You out-of-network bunching</td>
+                  <td>Out-of-network posts are spaced out in the final feed</td>
+                  <td>Maximum 2 consecutive out-of-network candidates</td>
+                  <td>Rationale not stated</td>
+                </tr>
+                <tr>
+                  <td>Fixed-position boosts</td>
+                  <td>If specific boost flags are enabled, some items can be moved toward a fixed position</td>
+                  <td>Content exploration boost position default 100; deep retrieval boost position default 100; both boost flags default false</td>
+                  <td>Rationale not stated</td>
+                </tr>
+              </tbody>
+            </table>
+            <details>
+              <summary>Repo evidence for these values</summary>
+              <div class="evidence-body">
+                <ul>
+                  <li><code>.../PredictedScoreFeature.scala</code>, lines 293-310 and <code>.../RerankerUtil.scala</code>, lines 18-40: fixed head list; query-time weight lookup.</li>
+                  <li><code>.../HomeGlobalParams.scala</code>, lines 786-978: model-weight parameter slots and defaults.</li>
+                  <li><code>tweet-mixer/.../USSFeatures.scala</code>, lines 142-160: weighted signal-priority values.</li>
+                  <li><code>.../ScoredTweetsParam.scala</code>, lines 463-477 and 599-659 and 750-770: out-of-network factor, reply factor, author-diversity defaults, source-diversity defaults, and enable flag.</li>
+                  <li><code>.../AuthorBasedListwiseRescoringProvider.scala</code>, lines 46-54 and <code>.../CandidateSourceDiversityListwiseRescoringProvider.scala</code>, lines 41-49: exponential decay comments.</li>
+                  <li><code>.../KeepTopKCandidatesPerCommunity.scala</code>, lines 14-15: community caps.</li>
+                  <li><code>.../ForYouScoredTweetsMixerPipelineConfig.scala</code>, lines 125 and 200-209: max two consecutive out-of-network candidates.</li>
+                  <li><code>.../ScoredTweetsParam.scala</code>, lines 96-107 and 140-145: boost positions and feature flags.</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="guardrail-grid">
+            <article class="info-card">
+              <span class="label">Balance</span>
+              <h3>The feed is reshaped after scoring</h3>
+              <p>
+                The raw model score is not final. The code applies additional multipliers and
+                listwise discounts for out-of-network candidates, replies, author repetition,
+                source repetition, feedback fatigue, and other conditions.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../HeuristicScorer.scala</code>, lines 30-56: active rescorers.
+                    </li>
+                    <li>
+                      <code>.../AuthorBasedListwiseRescoringProvider.scala</code>, lines 22-54:
+                      repeated posts from the same author are decayed down-list.
+                    </li>
+                    <li>
+                      <code>.../CandidateSourceDiversityListwiseRescoringProvider.scala</code>,
+                      lines 26-49: repeated posts from the same source/reason are decayed.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Safety and repetition</span>
+              <h3>Some items are removed after scoring</h3>
+              <p>
+                The code filters out already seen items, items affected by "See fewer" fatigue,
+                duplicate conversation items, and several classes of unsafe or low-quality content.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../ScoredTweetsRecommendationPipelineConfig.scala</code>, lines
+                      471-490 and 532-556: global and post-scoring filters.
+                    </li>
+                    <li>
+                      <code>.../PreviouslySeenTweetsFilter.scala</code>, lines 32-45: seen,
+                      engaged, and bloom-filtered tweets are removed.
+                    </li>
+                    <li>
+                      <code>.../FeedbackFatigueFilter.scala</code>, lines 39-79: "See fewer"
+                      feedback can suppress authors and social-context routes.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Community cap</span>
+              <h3>Not every source can dominate the page</h3>
+              <p>
+                Community posts are capped. The final score sort also sits next to source-specific
+                selectors, not all by itself.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../KeepTopKCandidatesPerCommunity.scala</code>, lines 14-15: only one
+                      per community and three community candidates total.
+                    </li>
+                    <li>
+                      <code>.../ScoredTweetsRecommendationPipelineConfig.scala</code>, lines
+                      558-577: score sort plus additional selectors and max-results trimming.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">For You shape</span>
+              <h3>Out-of-network posts are explicitly spaced out</h3>
+              <p>
+                The final For You mixer spaces out out-of-network posts so there are at most two of
+                them in a row.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../ForYouScoredTweetsMixerPipelineConfig.scala</code>, line 125:
+                      <code>MaxConsecutiveOutOfNetworkCandidates = 2</code>.
+                    </li>
+                    <li>
+                      <code>.../ForYouScoredTweetsMixerPipelineConfig.scala</code>, lines 200-209:
+                      out-of-network debunching selector.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="creator">
+          <h2>3. How a creator's post can spread under current code</h2>
+          <p class="section-intro">
+            The repo does not expose one public distribution formula. The safest factual summary is:
+            these are the retrieval paths the code can use, the windows and caps those paths apply,
+            and the points at which interpretation starts.
+          </p>
+          <div class="callout">
+            <strong>Inference from implementation:</strong> distribution appears to be emergent from
+            retrieval eligibility, ranking strength, and filtering. The repo does not expose a
+            single fixed "distribution score."
+          </div>
+
+          <div class="cluster-grid" style="margin-top: 24px;">
+            <div class="diagram-card">
+              <div class="chip-wrap">
+                <button class="chip-btn active" data-path="followers">Followers</button>
+                <button class="chip-btn" data-path="network">Network-driven</button>
+                <button class="chip-btn" data-path="interest">Interest match</button>
+                <button class="chip-btn" data-path="community">Community or category</button>
+              </div>
+              <svg viewBox="0 0 560 360" aria-label="Post distribution paths">
+                <path id="edge-post-followers" class="edge active" d="M148 176 C205 95, 273 95, 330 128" />
+                <path id="edge-post-network" class="edge" d="M148 176 C215 176, 282 176, 350 176" />
+                <path id="edge-post-interest" class="edge" d="M148 176 C205 258, 273 258, 330 224" />
+                <path id="edge-post-community" class="edge" d="M148 176 C230 310, 330 306, 420 270" />
+
+                <circle id="node-post" class="node active" cx="108" cy="176" r="52"></circle>
+                <text class="node-label" x="108" y="171">Your</text>
+                <text class="node-label" x="108" y="191">post</text>
+
+                <circle id="node-followers" class="node active" cx="378" cy="128" r="64"></circle>
+                <text class="node-label" x="378" y="124">People who</text>
+                <text class="node-label" x="378" y="144">follow you</text>
+
+                <circle id="node-network" class="node" cx="414" cy="176" r="70"></circle>
+                <text class="node-label" x="414" y="172">Network-</text>
+                <text class="node-label" x="414" y="192">driven</text>
+
+                <circle id="node-interest" class="node" cx="378" cy="224" r="66"></circle>
+                <text class="node-label" x="378" y="220">Interest-</text>
+                <text class="node-label" x="378" y="240">matched</text>
+
+                <circle id="node-community" class="node" cx="452" cy="270" r="62"></circle>
+                <text class="node-label" x="452" y="266">Community</text>
+                <text class="node-label" x="452" y="286">or category</text>
+              </svg>
+            </div>
+
+            <div class="note-box" id="path-copy">
+              <h3>Path 1: followers</h3>
+              <p>
+                The clearest direct route is still the viewer's follow graph. The in-network
+                Earlybird path is built from followed user IDs, with graph-based score weights
+                attached to those followed accounts.
+              </p>
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <h4>Direct code statement</h4>
+                  <p>
+                    The query uses followed user IDs, author scores, and a recent time window.
+                  </p>
+                </div>
+                <div class="mini-card">
+                  <h4>Interpretation</h4>
+                  <p>
+                    A post has a straightforward path to people already connected to the author.
+                  </p>
+                </div>
+              </div>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../EarlybirdInNetworkQueryTransformer.scala</code>, lines 74-88:
+                      followed user IDs and author score map feed the query.
+                    </li>
+                    <li>
+                      <code>.../ScoredTweetsEarlybirdInNetworkCandidatePipelineConfig.scala</code>,
+                      lines 72-88: in-network retrieval path.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="timeline-grid">
+            <div class="timeline-box">
+              <strong>In-network</strong>
+              <p>24h default, 48h for some viewer states.</p>
+            </div>
+            <div class="timeline-box">
+              <strong>Network-likes path age (UTEG)</strong>
+              <p>24h in the Home query.</p>
+            </div>
+            <div class="timeline-box">
+              <strong>UTEG memory in repo doc</strong>
+              <p>Repo doc says 24-48h engagement memory.</p>
+            </div>
+            <div class="timeline-box">
+              <strong>Communities</strong>
+              <p>48h window in the query.</p>
+            </div>
+            <div class="timeline-box">
+              <strong>Content exploration</strong>
+              <p>Last 6h of cold start posts.</p>
+            </div>
+          </div>
+          <p class="muted-note" style="margin-top: 14px;">
+            There is no one universal lifetime in the repo. Different retrieval paths have
+            different windows, and evergreen paths show that some content can stay retrievable
+            longer.
+          </p>
+          <div class="fact-table-wrap">
+            <h3>Additional explicit limits and gates affecting spread</h3>
+            <table class="fact-table">
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>What it means</th>
+                  <th>Extent in code</th>
+                  <th>Why stated in code or doc</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Network-likes path minimum (UTEG)</td>
+                  <td>For this path to work, there must be at least one non-author like</td>
+                  <td>At least 1 non-author favorite</td>
+                  <td>No rationale is stated; it is a hard eligibility rule for that path</td>
+                </tr>
+                <tr>
+                  <td>Recently cached candidates</td>
+                  <td>Recently scored posts can be reused for a short time</td>
+                  <td>Cache TTL default 3 minutes; cache stores up to 1000 tweets</td>
+                  <td>The recent-feedback gate comment explicitly says the reason is faster reaction to "don't like" feedback</td>
+                </tr>
+                <tr>
+                  <td>Low-signal viewer threshold</td>
+                  <td>A viewer can be treated as low-signal if they have very few recent explicit actions</td>
+                  <td>Default fewer than 10 explicit signals within the last 90 days; explicit signals are favorite, retweet, reply, bookmark, and share</td>
+                  <td>The threshold is explicit in code, but the reason is not stated</td>
+                </tr>
+                <tr>
+                  <td>Viewer preference for out-of-network recommendations</td>
+                  <td>A viewer setting can disable out-of-network recommendation paths</td>
+                  <td>Defaults to true if unset; false disables out-of-network candidate pipelines</td>
+                  <td>The gate comment explicitly states this behavior</td>
+                </tr>
+              </tbody>
+            </table>
+            <details>
+              <summary>Repo evidence for these values</summary>
+              <div class="evidence-body">
+                <ul>
+                  <li><code>.../UtegMinFavCountFilter.scala</code>, lines 17-27: minimum one non-author favorite.</li>
+                  <li><code>.../CachedScoredTweetsSideEffect.scala</code>, lines 46 and 191-195: cache stores up to 1000 tweets and uses the configured TTL.</li>
+                  <li><code>.../ScoredTweetsParam.scala</code>, lines 257-264: cache TTL default 3 minutes.</li>
+                  <li><code>.../LowSignalUserQueryFeatureHydrator.scala</code>, lines 40 and 82-87: 90-day age window and low-signal cutoff based on signal count.</li>
+                  <li><code>.../SignalUtil.scala</code>, lines 10-16: explicit signals are favorite, retweet, reply, bookmark, and share.</li>
+                  <li><code>.../AllowForYouRecommendationsGate.scala</code>, lines 9-22: default-true out-of-network preference gate.</li>
+                </ul>
+              </div>
+            </details>
+          </div>
+          <details>
+            <summary>Repo evidence for time windows</summary>
+            <div class="evidence-body">
+              <ul>
+                <li>
+                  <code>.../EarlybirdInNetworkQueryTransformer.scala</code>, lines 20-23 and 70-72:
+                  24h default, 48h for some viewer states.
+                </li>
+                <li>
+                  <code>.../UtegQueryTransformer.scala</code>, lines 22-24 and 39-58: 24h tweet-age
+                  window for the Home UTEG query.
+                </li>
+                <li>
+                  <code>src/scala/com/twitter/recos/user_tweet_entity_graph/README.md</code>, lines
+                  12-13: UTEG keeps engagement memory for 24-48h.
+                </li>
+                <li>
+                  <code>.../CommunitiesEarlybirdQueryTransformer.scala</code>, lines 29 and 44-47:
+                  48h communities window.
+                </li>
+                <li>
+                  <code>.../ContentExplorationCandidateSource.scala</code>, lines 43-52: last 6
+                  hours for cold-start category posts.
+                </li>
+                <li>
+                  <code>tweet-mixer/.../EvergreenDRUserTweetCandidatePipelineConfig.scala</code>,
+                  lines 54-77 and <code>.../EvergreenVideosQueryTransformer.scala</code>, lines
+                  15-31: evergreen retrieval paths exist.
+                </li>
+              </ul>
+            </div>
+          </details>
+        </section>
+
+        <section class="section" id="make">
+          <h2>4. Creator guidance derived from current code</h2>
+          <p class="section-intro">
+            The repo does not publish a creator handbook. So every recommendation below is labeled
+            as an inference from implementation, not a guaranteed rule.
+          </p>
+          <div class="callout">
+            <strong>Inference from implementation:</strong> the code is more directly aligned with
+            content that can be matched to an audience, can produce several positive outcome types,
+            and does not trigger negative feedback or filters.
+          </div>
+
+          <div class="creator-grid">
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Do not rely on likes alone</h3>
+              <p>
+                The model predicts many outcomes: likes, replies, retweets, bookmarks, shares, good
+                clicks, profile clicks, dwell, multiple video quality outcomes, watch time, and
+                negative feedback.
+              </p>
+              <p>
+                Interpretation: the modeled objectives are broader than likes alone. The repo does
+                not expose one published weight table, but it does clearly show multiple ranking
+                heads.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../PredictedScoreFeature.scala</code>, lines 62-311: the ranking heads
+                      that explicitly exist.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Make the topic easy to match</h3>
+              <p>
+                The retrieval stack includes category systems, communities, embeddings, topic and
+                geo systems, semantic features, and media-based features.
+              </p>
+              <p>
+                Interpretation: clearer subject matter and audience fit should give the retrieval
+                stack more ways to match a post to viewers.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>tweet-mixer/.../HomeRecommendedTweetsRecommendationPipelineConfig.scala</code>,
+                      lines 271-332: broad set of interest-matching retrieval paths.
+                    </li>
+                    <li>
+                      <code>.../ScoredTweetsModelScoringPipelineConfig.scala</code>, lines 203-306:
+                      semantic, topic, embedding, and multimodal features.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Replies face extra structural filters</h3>
+              <p>
+                The Home pipeline has explicit filters for some reply shapes, especially recommended
+                replies to people the viewer does not follow, or reply structures that do not meet
+                specific conditions.
+              </p>
+              <p>
+                Interpretation: replies can spread, but some reply shapes face extra gates that
+                standalone posts do not.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../OONReplyFilter.scala</code>, lines 16-40: some out-of-network
+                      replies are removed.
+                    </li>
+                    <li>
+                      <code>.../QualifiedRepliesFilter.scala</code>, lines 28-42: some in-network
+                      reply structures are removed.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Video is judged on more than starts</h3>
+              <p>
+                The model includes video quality view, video quality watch, and watch-time heads.
+                There is also a minimum video-duration filter.
+              </p>
+              <p>
+                Interpretation: video ranking includes attention-quality and watch-time style
+                objectives, not just whether playback starts.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../PredictedScoreFeature.scala</code>, lines 131-190 and 249-290:
+                      video-related ranking heads.
+                    </li>
+                    <li>
+                      <code>.../MinVideoDurationFilter.scala</code>, lines 17-60: minimum duration
+                      filtering logic.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Negative feedback and filters matter</h3>
+              <p>
+                The system explicitly models negative feedback and filters for slop, spam, gore,
+                NSFW, violent content, duplicate conversation items, and fatigue from "See fewer."
+              </p>
+              <p>
+                Interpretation: distribution depends on both positive engagement and on avoiding
+                negative-feedback or filter-triggering conditions.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../PredictedScoreFeature.scala</code>, lines 260-311: negative
+                      feedback head.
+                    </li>
+                    <li>
+                      <code>.../ScoredTweetsRecommendationPipelineConfig.scala</code>, lines
+                      532-556: post-scoring filters.
+                    </li>
+                    <li>
+                      <code>.../FeedbackFatigueFilter.scala</code>, lines 39-79: fatigue logic.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+
+            <article class="info-card">
+              <span class="label">Inference from implementation</span>
+              <h3>Posting more often does not create equal extra reach</h3>
+              <p>
+                The ranking heuristics explicitly decay repeated posts from the same author and from
+                the same source or reason. Seen or served items are also filtered out.
+              </p>
+              <p>
+                Interpretation: extra posting can help only if the posts do not crowd each other out
+                in the same viewer's recommendation set.
+              </p>
+              <details>
+                <summary>Repo evidence</summary>
+                <div class="evidence-body">
+                  <ul>
+                    <li>
+                      <code>.../AuthorBasedListwiseRescoringProvider.scala</code>, lines 22-54:
+                      author diversity decay.
+                    </li>
+                    <li>
+                      <code>.../CandidateSourceDiversityListwiseRescoringProvider.scala</code>,
+                      lines 26-49: source diversity decay.
+                    </li>
+                    <li>
+                      <code>.../PreviouslySeenTweetsFilter.scala</code>, lines 32-45: already seen
+                      items are removed.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="limits">
+          <h2>What the repo does not let me claim</h2>
+          <div class="source-grid" style="margin-top: 18px;">
+            <article class="info-card">
+              <span class="label">I am not claiming</span>
+              <h3>One universal secret formula</h3>
+              <p>
+                The repo shows many retrieval paths, many prediction heads, and many filters. It
+                does not expose a single simple formula that fully explains every feed decision.
+              </p>
+            </article>
+            <article class="info-card">
+              <span class="label">I am not claiming</span>
+              <h3>One fixed lifetime for every post</h3>
+              <p>
+                The code shows different windows for different retrieval paths, plus evergreen
+                paths. So there is no single honest answer like "every post gets X hours."
+              </p>
+            </article>
+            <article class="info-card">
+              <span class="label">I am not claiming</span>
+              <h3>A guaranteed creator playbook</h3>
+              <p>
+                The creator advice on this page is the safest inference from the implementation, not
+                a public promise from the repo.
+              </p>
+            </article>
+            <article class="info-card">
+              <span class="label">I am not claiming</span>
+              <h3>That this page uses anything outside the repo</h3>
+              <p>
+                Everything here comes from repository code and repository docs only.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <strong>Built from repository files only.</strong>
+        Main evidence includes <code>home-mixer/README.md</code>,
+        <code>RETREIVAL_SIGNALS.md</code>, the Home Mixer scored-tweets pipeline files, the
+        Tweet Mixer home-recommended pipeline files, and the in-repo UTEG README.
+      </footer>
+    </div>
+
+    <script>
+      const stageData = {
+        gather: {
+          title: "First, the system builds a shortlist of possible posts.",
+          body:
+            "Think of this as building a shortlist. The code does not start from every post on the platform and rank all of them. It first narrows the universe down to a much smaller set of candidates that look plausible for this viewer.",
+          leftTitle: "What the code clearly says",
+          leftText:
+            "The active scored-tweets pipeline currently draws from static support paths, cached posts, posts from people you follow, the direct UTEG path, Tweet Mixer, content exploration, lists, backfill, and communities.",
+          rightTitle: "Interpretation",
+          rightText:
+            "The feed starts with several shortlists for this viewer, not one giant ranking pass over every post on the platform."
+        },
+        score: {
+          title: "Next, it scores each shortlisted post.",
+          body:
+            "After building the shortlist, the pipeline adds a very large set of features and runs scoring models. The reranker then combines multiple prediction heads into a final score for each shortlisted post.",
+          leftTitle: "What the code clearly says",
+          leftText:
+            "Before scoring, the pipeline adds features about the author, graph relationships, topic, semantic content, embeddings, real-time activity, creator signals, and media, then runs the heavy ranker.",
+          rightTitle: "Interpretation",
+          rightText:
+            "The feed is trying to make an informed guess about each post, not just count crude engagement totals."
+        },
+        filter: {
+          title: "Then it removes and reshapes things.",
+          body:
+            "Raw score is not the end. The code removes tweets that are too old, already seen, repetitive, invalid, low quality, or otherwise not good to show. It also rebalances the list so one source or author does not dominate.",
+          leftTitle: "What the code clearly says",
+          leftText:
+            "Global and post-scoring filters include age, seen or served items, feedback fatigue, language, slop, spam, violent, NSFW, duplicate conversation tweets, and more. Heuristics add author and source diversity decay.",
+          rightTitle: "Interpretation",
+          rightText:
+            "A high score alone does not guarantee placement. The feed is also shaped to feel safer, less repetitive, and more balanced."
+        },
+        mix: {
+          title: "Finally, the survivors are mixed into the timeline.",
+          body:
+            "The final For You mixer sorts the remaining tweet posts, spaces out out-of-network posts, and inserts non-tweet results like ads and follow modules.",
+          leftTitle: "What the code clearly says",
+          leftText:
+            "The For You mixer includes scored tweets, push-to-home, who-to-follow, who-to-subscribe, tweet previews, ads, conversation-service backup, edited tweets, and a new-tweets pill.",
+          rightTitle: "Interpretation",
+          rightText:
+            "The thing you see on screen is a composed product, not just a list of scores."
+        }
+      };
+
+      const clusterData = {
+        engage: {
+          title: "The model predicts several kinds of positive actions.",
+          body:
+            "The ranking layer models more than one useful outcome. A post can score because it is predicted to cause several different positive actions, not just one.",
+          leftText:
+            "Prediction heads include favorite, reply, retweet, reply engaged by author, bookmark, and share.",
+          rightText:
+            "This means the system can value conversation and spread, not just passive liking.",
+          bars: [
+            ["Favorite", "Predicted head in code"],
+            ["Reply", "Predicted head in code"],
+            ["Retweet", "Predicted head in code"],
+            ["Reply engaged by author", "Predicted head in code"],
+            ["Bookmark", "Predicted head in code"],
+            ["Share", "Predicted head in code"]
+          ]
+        },
+        click: {
+          title: "The model also predicts clicks and time spent.",
+          body:
+            "The code has explicit heads for good clicks, clicks with dwell, profile clicks, and dwell itself.",
+          leftText:
+            "Prediction heads include good click, good click with dwell, good profile click, and dwell.",
+          rightText:
+            "Interpretation: the system can reward posts that people open and spend time with, not just posts they like.",
+          bars: [
+            ["Good click", "Predicted head in code"],
+            ["Good click with dwell", "Predicted head in code"],
+            ["Good profile click", "Predicted head in code"],
+            ["Dwell", "Predicted head in code"]
+          ]
+        },
+        video: {
+          title: "Video has its own attention signals.",
+          body:
+            "The code treats video as special enough to have separate prediction heads for quality views, quality watches, immersive views, and watch time.",
+          leftText:
+            "Prediction heads include video quality view, immersive video quality view, video quality watch, and video watch time.",
+          rightText:
+            "Interpretation: video ranking uses stronger attention-related outcomes than a simple start event.",
+          bars: [
+            ["Video quality view", "Predicted head in code"],
+            ["Immersive video quality view", "Predicted head in code"],
+            ["Video quality watch", "Predicted head in code"],
+            ["Video watch time", "Predicted head in code"]
+          ]
+        },
+        negative: {
+          title: "The code also watches for negative outcomes.",
+          body:
+            "The ranking code includes a negative-feedback head and the serving stack includes several negative-content filters.",
+          leftText:
+            "There is an explicit negative-feedback prediction head, and post-scoring filters remove several classes of undesirable content.",
+          rightText:
+            "Interpretation: a post can lose rank because it is weak, and also because it triggers negative or filtered conditions.",
+          bars: [
+            ["Negative feedback", "Predicted head in code"],
+            ["Slop filter", "Post-scoring filter"],
+            ["Spam filter", "Post-scoring filter"],
+            ["NSFW or violent filters", "Post-scoring filter"]
+          ]
+        }
+      };
+
+      const pathData = {
+        followers: {
+          title: "Path 1: followers",
+          body:
+            "The clearest direct route is still the viewer's follow graph. The in-network Earlybird path is built from followed user IDs, with graph-based score weights attached to those followed accounts.",
+          leftTitle: "Direct code statement",
+          leftText:
+            "The query uses followed user IDs, author scores, and a recent time window.",
+          rightTitle: "Interpretation",
+          rightText:
+            "A post has a straightforward path to people already connected to the author.",
+          activeNodes: ["post", "followers"],
+          activeEdges: ["post-followers"]
+        },
+        network: {
+          title: "Path 2: network-driven recommendation",
+          body:
+            "The repo's UTEG doc explicitly says this system is used for the 'liked by people near you' style of out-of-network recommendation. In Home, the direct UTEG path uses favorite-only proof from other users.",
+          leftTitle: "Direct code statement",
+          leftText:
+            "UTEG uses a viewer's weighted in-network graph as seeds and returns tweets engaged by those weighted users.",
+          rightTitle: "Interpretation",
+          rightText:
+            "If people close to a viewer's follow graph like a post, that can create an extra route beyond the creator's followers.",
+          activeNodes: ["post", "network"],
+          activeEdges: ["post-network"]
+        },
+        interest: {
+          title: "Path 3: interest-matched viewers",
+          body:
+            "Tweet Mixer supplies many retrieval systems that can surface a post because it matches interests, embeddings, topics, search history, geography, or evergreen retrieval systems.",
+          leftTitle: "Direct code statement",
+          leftText:
+            "The HomeRecommendedTweets pipeline includes SimClusters, TwHIN, deep retrieval, search history, topic and geo sources, evergreen paths, and more.",
+          rightTitle: "Interpretation",
+          rightText:
+            "A post can spread because it matches what a viewer tends to care about, even if they do not follow the creator.",
+          activeNodes: ["post", "interest"],
+          activeEdges: ["post-interest"]
+        },
+        community: {
+          title: "Path 4: community or category fit",
+          body:
+            "There are retrieval paths that use the viewer's community memberships and the viewer's category signals.",
+          leftTitle: "Direct code statement",
+          leftText:
+            "Community memberships feed one query path, and viewer categories plus recent cold-start category posts feed another.",
+          rightTitle: "Interpretation",
+          rightText:
+            "A post can also spread because the viewer belongs to a community or category bucket where the post fits.",
+          activeNodes: ["post", "community"],
+          activeEdges: ["post-community"]
+        }
+      };
+
+      const stageButtons = document.querySelectorAll(".tab-btn");
+      const stageCards = document.querySelectorAll("[data-stage-card]");
+      const stageCopy = document.getElementById("stage-copy");
+
+      function renderStage(key) {
+        const data = stageData[key];
+        if (!data) return;
+
+        stageButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.stage === key);
+        });
+
+        stageCards.forEach((card) => {
+          card.classList.toggle("active", card.dataset.stageCard === key);
+        });
+
+        stageCopy.innerHTML = `
+          <h3>${data.title}</h3>
+          <p>${data.body}</p>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <h4>${data.leftTitle}</h4>
+              <p>${data.leftText}</p>
+            </div>
+            <div class="mini-card">
+              <h4>${data.rightTitle}</h4>
+              <p>${data.rightText}</p>
+            </div>
+          </div>
+          <details>
+            <summary>Repo evidence</summary>
+            <div class="evidence-body">
+              <ul>
+                <li><code>home-mixer/README.md</code>, lines 15-31: high-level flow.</li>
+                <li><code>.../ScoredTweetsRecommendationPipelineConfig.scala</code>, lines 446-460 and 471-577: candidate paths, filters, scoring, selectors.</li>
+                <li><code>.../ForYouScoredTweetsMixerPipelineConfig.scala</code>, lines 158-174 and 187-297: final mixing and insertion logic.</li>
+              </ul>
+            </div>
+          </details>
+        `;
+      }
+
+      stageButtons.forEach((btn) => {
+        btn.addEventListener("click", () => renderStage(btn.dataset.stage));
+      });
+
+      const clusterButtons = document.querySelectorAll("[data-cluster]");
+      const clusterBars = document.getElementById("cluster-bars");
+      const clusterCopy = document.getElementById("cluster-copy");
+
+      function renderCluster(key) {
+        const data = clusterData[key];
+        if (!data) return;
+
+        clusterButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.cluster === key);
+        });
+
+        clusterBars.innerHTML = data.bars
+          .map(
+            ([label, meta]) => `
+              <div class="cluster-bar">
+                <span>${label}</span>
+                <span>${meta}</span>
+              </div>
+            `
+          )
+          .join("");
+
+        clusterCopy.innerHTML = `
+          <h3>${data.title}</h3>
+          <p>${data.body}</p>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <h4>What the code clearly says</h4>
+              <p>${data.leftText}</p>
+            </div>
+            <div class="mini-card">
+              <h4>Interpretation</h4>
+              <p>${data.rightText}</p>
+            </div>
+          </div>
+          <details>
+            <summary>Repo evidence</summary>
+            <div class="evidence-body">
+              <ul>
+                <li><code>.../PredictedScoreFeature.scala</code>, lines 62-311: prediction heads.</li>
+                <li><code>.../WeighedModelRerankingScorer.scala</code>, lines 43-64: final weighted score is built from these heads.</li>
+                <li><code>.../HeuristicScorer.scala</code>, lines 30-56: extra post-model reshaping.</li>
+              </ul>
+            </div>
+          </details>
+        `;
+      }
+
+      clusterButtons.forEach((btn) => {
+        btn.addEventListener("click", () => renderCluster(btn.dataset.cluster));
+      });
+
+      const pathButtons = document.querySelectorAll("[data-path]");
+      const pathCopy = document.getElementById("path-copy");
+
+      function renderPath(key) {
+        const data = pathData[key];
+        if (!data) return;
+
+        pathButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.path === key);
+        });
+
+        ["post", "followers", "network", "interest", "community"].forEach((name) => {
+          const node = document.getElementById(`node-${name}`);
+          node.classList.toggle("active", data.activeNodes.includes(name));
+        });
+
+        ["post-followers", "post-network", "post-interest", "post-community"].forEach((name) => {
+          const edge = document.getElementById(`edge-${name}`);
+          edge.classList.toggle("active", data.activeEdges.includes(name));
+        });
+
+        pathCopy.innerHTML = `
+          <h3>${data.title}</h3>
+          <p>${data.body}</p>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <h4>${data.leftTitle}</h4>
+              <p>${data.leftText}</p>
+            </div>
+            <div class="mini-card">
+              <h4>${data.rightTitle}</h4>
+              <p>${data.rightText}</p>
+            </div>
+          </div>
+          <details>
+            <summary>Repo evidence</summary>
+            <div class="evidence-body">
+              <ul>
+                <li><code>.../EarlybirdInNetworkQueryTransformer.scala</code>, lines 74-88: follow-graph route.</li>
+                <li><code>src/scala/com/twitter/recos/user_tweet_entity_graph/README.md</code>, lines 7-10 and <code>.../UtegQueryTransformer.scala</code>, lines 35-63: network-driven route.</li>
+                <li><code>tweet-mixer/.../HomeRecommendedTweetsRecommendationPipelineConfig.scala</code>, lines 271-332: interest-matching retrieval routes.</li>
+                <li><code>.../CommunitiesEarlybirdQueryTransformer.scala</code>, lines 37-47 and <code>.../ContentExplorationQueryTransformer.scala</code>, lines 18-24: community and category routes.</li>
+              </ul>
+            </div>
+          </details>
+        `;
+      }
+
+      pathButtons.forEach((btn) => {
+        btn.addEventListener("click", () => renderPath(btn.dataset.path));
+      });
+
+      renderStage("gather");
+      renderCluster("engage");
+      renderPath("followers");
+    </script>
+  </body>
+</html>
